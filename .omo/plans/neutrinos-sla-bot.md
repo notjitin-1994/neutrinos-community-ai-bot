@@ -106,56 +106,56 @@ Each todo: refs (exact files) - does - acceptance - QA (happy + failure, tool + 
   - commit: chore: bootstrap project, secrets, deps.
 
 ### Phase 1 — Seed Discourse (user-requested execution step)
-- [1.1] Seed script — refs: scripts/seed_discourse.py, data/community_seed/Community_Seed_Content.md, src/neutrinos_bot/discourse_client.py.
+- [x] Seed script — refs: scripts/seed_discourse.py, data/community_seed/Community_Seed_Content.md, src/neutrinos_bot/discourse_client.py.
   - does: idempotent script: enable Solved plugin if off; create 4 categories (Getting Started, Workflow Builder, API & Integrations, Bugs & Troubleshooting); create 7 seed users + 1 bot user (neutrinos_bot); post 10 topics verbatim from seed MD into correct categories; post human replies on #1,#3,#5,#9; mark accepted solution on #1,#5,#9; leave #2,#3,#4,#6,#7,#8,#10 unanswered (#3 with the partial OP->champion->OP exchange). Tag every seeded entity with custom field/flag for idempotent re-runs.
   - acceptance: API GET /categories.json shows 4; GET /latest.json shows 10 topics; topics #1,#5,#9 have accepted_answer; 7+1 users exist; re-running script is a no-op (skip existing).
   - QA: happy = fresh instance -> 10 topics, 3 solved; failure = run twice -> no duplicates; evidence = pytest -q tests/test_seed.py (uses recorded API responses / a dry-run flag).
   - commit: feat: idempotent Discourse seeding script.
 
 ### Phase 2 — Ingestion & vector store
-- [2.1] PDF ingest — refs: src/neutrinos_bot/ingest.py, nvidia_client.py, data/knowledge_base/.
+- [x] PDF ingest — refs: src/neutrinos_bot/ingest.py, nvidia_client.py, data/knowledge_base/.
   - does: parse 2 PDFs -> recursive char split (~600 tokens, 100 overlap) -> embed via nv-embed-v1 (input_type=passage, batched) -> store Chroma (persisted chroma/) with metadata {source: doc, source_ref: "<pdf> p<page> <heading>"}. Load existing store if present (idempotent).
-- [2.2] Community ingest — refs: ingest.py, discourse_client.py.
+- [x] Community ingest — refs: ingest.py, discourse_client.py.
   - does: fetch solved topics + accepted solutions via API -> chunk -> embed -> store in same collection with {source: community, source_ref: "topic #<id>", solved: true}.
   - acceptance (2.1+2.2): chroma/ persisted; collection.count() > 0; query "Loop Limit Exceeded" returns the Workflow Builder chunk; throttle stays <30 RPM (logged).
   - QA: happy = ingest completes, counts asserted; failure = simulate 429 mid-batch -> backoff + resume, no crash; evidence = tests/test_ingest.py + throttle log.
   - commit: feat: ingestion pipeline (PDFs + solved threads) -> Chroma.
 
 ### Phase 3 — RAG retrieval + generation + confidence
-- [3.1] Retriever — src/neutrinos_bot/retriever.py. query embed (input_type=query) -> top-k -> metadata-rich.
-- [3.2] Generator — src/neutrinos_bot/generator.py. Strict prompt ("answer ONLY from context; cite; if insufficient say so"); NVIDIA gen; returns {answer, citations, raw}.
-- [3.3] Confidence gate — src/neutrinos_bot/confidence.py. Per Section 6; returns {confident: bool, score}.
+- [x] Retriever — src/neutrinos_bot/retriever.py. query embed (input_type=query) -> top-k -> metadata-rich.
+- [x] Generator — src/neutrinos_bot/generator.py. Strict prompt ("answer ONLY from context; cite; if insufficient say so"); NVIDIA gen; returns {answer, citations, raw}.
+- [x] Confidence gate — src/neutrinos_bot/confidence.py. Per Section 6; returns {confident: bool, score}.
   - acceptance: topic-4 query -> confident answer citing Workflow Builder ref; topic-6/7 -> API Integration guide; topic-2 (no docs) -> decline; topic-3 follow-up -> confident answer (Run Monitor reassign) citing docs.
   - QA: tests/test_rag.py with all 7 unanswered cases as fixtures; assert citations present / decline on #2.
   - commit: feat: retriever, generator, confidence gate.
 
 ### Phase 4 — SLA monitor + post-back + state
-- [4.1] Discourse client — src/neutrinos_bot/discourse_client.py. Rate-limited httpx wrapper: list topics, get topic+posts, create post, set accepted solution. Throttle + backoff.
-- [4.2] State store — src/neutrinos_bot/state.py. SQLite: topics(topic_id, bot_answered, first_seen, last_human_at, last_checked). Idempotent.
-- [4.3] SLA monitor — src/neutrinos_bot/sla_monitor.py. Poll loop (Section 2) applying the Section 5 rule; enqueue SLA candidates.
-- [4.4] Post-back — src/neutrinos_bot/post_back.py. Confident -> post reply prefixed "AI-generated answer" + citations + "Was this helpful? React or reply to flag a human expert." Low -> escalate. Write state.
+- [x] Discourse client — src/neutrinos_bot/discourse_client.py. Rate-limited httpx wrapper: list topics, get topic+posts, create post, set accepted solution. Throttle + backoff.
+- [x] State store — src/neutrinos_bot/state.py. SQLite: topics(topic_id, bot_answered, first_seen, last_human_at, last_checked). Idempotent.
+- [x] SLA monitor — src/neutrinos_bot/sla_monitor.py. Poll loop (Section 2) applying the Section 5 rule; enqueue SLA candidates.
+- [x] Post-back — src/neutrinos_bot/post_back.py. Confident -> post reply prefixed "AI-generated answer" + citations + "Was this helpful? React or reply to flag a human expert." Low -> escalate. Write state.
   - acceptance (4.x): end-to-end live run on the trial instance: an unanswered topic past SLA gets exactly one labeled bot reply; solved topics (#1,#5,#9) never get a bot reply; #3 follow-up gets answered; #2 gets an escalate reply. No double-posts.
   - QA: dry-run mode logs instead of posting; then one live cycle; evidence = screenshot/JSON of posted replies + state.db rows.
   - commit: feat: SLA monitor, post-back, idempotent state.
 
 ### Phase 5 — Guardrails hardening
-- [5.1] Active-conversation guard — don't fire if any human reply in last grace min even if unsolved.
-- [5.2] Rate-limit + degradation — central throttle/backoff wrapper verified; 429 -> retry not crash; queue+retry on generation failure; never double-post.
-- [5.3] Bot-reply labeling + human-engagement UX — every bot reply clearly AI-labeled + offers flag-a-human.
+- [x] Active-conversation guard — don't fire if any human reply in last grace min even if unsolved.
+- [x] Rate-limit + degradation — central throttle/backoff wrapper verified; 429 -> retry not crash; queue+retry on generation failure; never double-post.
+- [x] Bot-reply labeling + human-engagement UX — every bot reply clearly AI-labeled + offers flag-a-human.
   - QA: tests/test_guardrails.py — inject 429, inject recent-human-reply; assert no-fire + no-crash.
   - commit: feat: guardrails (active-conversation, rate-limit, labeling).
 
 ### Phase 6 — Service layer / entrypoints
-- [6.1] FastAPI app + CLI — src/neutrinos_bot/main.py. /health, /run (one cycle), optional /webhook. CLI: python -m neutrinos_bot.main run [--once|--watch] [--dry-run].
+- [x] FastAPI app + CLI — src/neutrinos_bot/main.py. /health, /run (one cycle), optional /webhook. CLI: python -m neutrinos_bot.main run [--once|--watch] [--dry-run].
   - acceptance: uvicorn neutrinos_bot.main:app serves /health; /run triggers a monitor cycle.
   - commit: feat: FastAPI service + CLI entrypoints.
 
 ### Phase 7 — Deliverables (rubric-aligned docs)
-- [7.1] Architecture diagram — docs/architecture.mmd (Mermaid) + exported PNG; matches Section 2.
-- [7.2] RAG design notes — docs/rag-design-notes.md: chunking strategy, retrieval method (vector), model choice + why, hallucination mitigation (strict prompt + confidence gate + citations).
-- [7.3] SLA & "answered" definition — docs/sla-definition.md: rationale for Section 5 rule incl. topic-3.
-- [7.4] Design doc — docs/design-doc.md: continuous production operation, measurement (answer-rate, human-acceptance, time-to-first-response, engagement delta), and the "don't kill human engagement" risk + mitigations (SLA tuned above median human response, escalate-not-replace, only fill gaps).
-- [7.5] Demo script + recording — docs/demo-script.md + screen recording: seeded unanswered topic -> SLA breach -> retrieval -> labeled reply; plus the edge cases (#2 decline, #3 partial).
+- [x] Architecture diagram — docs/architecture.mmd (Mermaid) + exported PNG; matches Section 2.
+- [x] RAG design notes — docs/rag-design-notes.md: chunking strategy, retrieval method (vector), model choice + why, hallucination mitigation (strict prompt + confidence gate + citations).
+- [x] SLA & "answered" definition — docs/sla-definition.md: rationale for Section 5 rule incl. topic-3.
+- [x] Design doc — docs/design-doc.md: continuous production operation, measurement (answer-rate, human-acceptance, time-to-first-response, engagement delta), and the "don't kill human engagement" risk + mitigations (SLA tuned above median human response, escalate-not-replace, only fill gaps).
+- [x] Demo script + recording — docs/demo-script.md + screen recording: seeded unanswered topic -> SLA breach -> retrieval -> labeled reply; plus the edge cases (#2 decline, #3 partial).
   - commit: docs: architecture, RAG notes, SLA definition, design doc, demo.
 
 ## 8. Verification & QA strategy

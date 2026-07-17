@@ -6,9 +6,9 @@
       "work_id": "neutrinos-sla-bot-bf03b228",
       "active_plan": "/home/jitin/neutrinos-demo/.omo/plans/neutrinos-sla-bot.md",
       "plan_name": "neutrinos-sla-bot",
-      "status": "active",
+      "status": "completed",
       "started_at": "2026-07-17T11:57:10.520Z",
-      "updated_at": "2026-07-17T11:57:10.520Z",
+      "updated_at": "2026-07-17T14:39:02.806Z",
       "session_ids": [
         "opencode:ses_090251b98ffemyLyalr79KBkJB"
       ],
@@ -16,13 +16,15 @@
         "opencode:ses_090251b98ffemyLyalr79KBkJB": "direct"
       },
       "agent": "atlas",
-      "task_sessions": {}
+      "task_sessions": {},
+      "ended_at": "2026-07-17T14:39:02.806Z",
+      "elapsed_ms": 9712286
     }
   },
   "active_plan": "/home/jitin/neutrinos-demo/.omo/plans/neutrinos-sla-bot.md",
   "started_at": "2026-07-17T11:57:10.520Z",
-  "status": "active",
-  "updated_at": "2026-07-17T11:57:10.520Z",
+  "status": "completed",
+  "updated_at": "2026-07-17T14:39:02.806Z",
   "session_ids": [
     "opencode:ses_090251b98ffemyLyalr79KBkJB"
   ],
@@ -31,5 +33,7 @@
   },
   "plan_name": "neutrinos-sla-bot",
   "task_sessions": {},
-  "agent": "atlas"
+  "agent": "atlas",
+  "ended_at": "2026-07-17T14:39:02.806Z",
+  "elapsed_ms": 9712286
 }

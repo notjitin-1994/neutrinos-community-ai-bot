@@ -1,0 +1,55 @@
+flowchart LR
+    subgraph Discourse["Discourse Instance (Pro Trial)"]
+        DT["Topics & Posts"]
+    end
+
+    subgraph Bot["Neutrinos SLA Bot"]
+        MON["SLA Monitor\n(poll /latest.json ~30s)"]
+        RULE{"Answered?\nRule\n(Section 5)"}
+        QUEUE["SLA Candidates\nQueue"]
+        
+        subgraph RAG["RAG Pipeline"]
+            RET["Retriever\n(nv-embed-v1 query\n→ Chroma top-k)"]
+            CONF{"Confidence\nGate\n(≥ 0.35?)"}
+            GEN["Generator\n(llama-3.1-70b-instruct\nstrict context-only)"]
+        end
+        
+        POST["Post-back\n(labeled reply\nor escalate)"]
+        STATE[("SQLite\nState Store\nidempotent")]
+    end
+
+    subgraph Knowledge["Knowledge Base"]
+        PDF["2 Neutrinos PDFs\n(API Guide +\nWorkflow Builder)"]
+        COMM["Solved Community\nThreads"]
+        CHROMA[("Chroma\nVector Store\n(persisted)")]
+    end
+
+    subgraph NVIDIA["NVIDIA NIM"]
+        EMB["nv-embed-v1\nEmbeddings"]
+        LLM["llama-3.1-70b-instruct\nGeneration"]
+    end
+
+    DT -->|"poll"| MON
+    MON --> RULE
+    RULE -->|"breach + unresolved"| QUEUE
+    RULE -->|"resolved / recent human"| DT
+    
+    QUEUE --> RET
+    RET --> CONF
+    CONF -->|"HIGH confidence"| GEN
+    GEN --> POST
+    CONF -->|"LOW confidence"| POST
+    POST -->|"create_post"| DT
+    POST -->|"mark_answered"| STATE
+    STATE -.->|"skip if answered"| MON
+    
+    PDF -->|"chunk + embed"| CHROMA
+    COMM -->|"chunk + embed"| CHROMA
+    CHROMA --> RET
+    EMB -.->|"passage embed"| CHROMA
+    EMB -.->|"query embed"| RET
+    LLM -.->|"generation"| GEN
+
+    style CONF fill:#fff3cd,stroke:#856404
+    style RULE fill:#fff3cd,stroke:#856404
+    style STATE fill:#d4edda,stroke:#155724

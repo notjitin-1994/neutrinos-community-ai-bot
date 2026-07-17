@@ -1,0 +1,14 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+chroma/
+state.db
+state.db-shm
+state.db-wal
+.vscode/
+.idea/
+.DS_Store

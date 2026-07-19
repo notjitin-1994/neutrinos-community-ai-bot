@@ -84,7 +84,7 @@ export default function LiveDemo() {
   ];
 
   return (
-    <div className="flex flex-col max-w-5xl mx-auto w-full pb-20" ref={containerRef}>
+    <div className="flex flex-col max-w-5xl mx-auto w-full pb-8" ref={containerRef}>
       {/* Navigation */}
       <Link href="/" className="gsap-fade text-sm text-blue-600 hover:text-blue-500 w-fit flex items-center gap-2 mb-6 transition-colors">
         <span>←</span> Back to Dashboard

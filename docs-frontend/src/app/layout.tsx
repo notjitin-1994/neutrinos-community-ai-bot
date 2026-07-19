@@ -40,7 +40,7 @@ export default function RootLayout({
         </header>
 
         {/* Main Content */}
-        <main className="flex-grow p-8 md:p-12 lg:p-24 max-w-7xl mx-auto w-full">
+        <main className="flex-grow py-4 md:py-5 lg:py-10 px-8 md:px-12 lg:px-24 max-w-7xl mx-auto w-full">
           {children}
         </main>
       </body>

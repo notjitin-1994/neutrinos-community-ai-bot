@@ -85,7 +85,7 @@ export default function LiveDemo() {
   ];
 
   return (
-    <div className="flex flex-col max-w-5xl mx-auto w-full" ref={containerRef}>
+    <div className="flex flex-col w-full animate-fade-in-up opacity-0" ref={containerRef}>
       
       {/* Video Theater Section */}
 

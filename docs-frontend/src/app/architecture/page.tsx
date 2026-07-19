@@ -190,7 +190,7 @@ export default function Architecture() {
   const activeNodeData = ARCHITECTURE_NODES.find(n => n.id === activeNode);
 
   return (
-    <div className="flex flex-col gap-8 w-full" ref={containerRef}>
+    <div className="flex flex-col gap-8 w-full animate-fade-in-up opacity-0" ref={containerRef}>
       
       <div className="page-header bg-white border border-slate-200 rounded-2xl p-8 md:p-12 shadow-sm mb-4 relative overflow-hidden">
         <div className="absolute top-0 right-0 p-16 opacity-5 pointer-events-none">

@@ -37,8 +37,7 @@ export default function ProductionPlan() {
   }, [activeTab]);
 
   return (
-    <div className="max-w-4xl mx-auto w-full pb-32 px-4 md:px-0" ref={containerRef}>
-      <Navigation />
+    <div className="max-w-4xl mx-auto w-full pb-32 px-4 md:px-0 mt-8 md:mt-12" ref={containerRef}>
       
       <header className="stagger-block mb-16">
         <h1 className="text-[3rem] leading-[1.1] md:text-7xl font-black tracking-tight text-slate-900 mb-6 text-balance">

@@ -3,6 +3,7 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
 import Image from "next/image";
+import Navigation from "@/components/Navigation";
 
 const poppins = Poppins({ 
   weight: ['300', '400', '500', '600', '700'],
@@ -33,9 +34,9 @@ export default function RootLayout({
               Neutrinos
             </span>
           </Link>
-          <nav className="flex items-center gap-6 text-sm font-medium text-slate-600">
-            <Link href="/" className="hover:text-blue-600 transition-colors">Dashboard</Link>
-            <a href="https://github.com/notjitin-1994/neutrinos-community-ai-bot" target="_blank" className="hover:text-blue-600 transition-colors">Repository</a>
+          <nav className="flex items-center gap-4 text-sm font-medium text-slate-600">
+            <Navigation />
+            <a href="https://github.com/notjitin-1994/neutrinos-community-ai-bot" target="_blank" className="hidden md:block hover:text-blue-600 transition-colors ml-4">Repository</a>
           </nav>
         </header>
 

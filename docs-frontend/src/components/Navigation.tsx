@@ -33,27 +33,26 @@ export default function Navigation() {
   }, []);
 
   return (
-    <div className="relative z-[100] mb-12 md:mb-16 w-full stagger-block" ref={dropdownRef}>
+    <div className="relative z-[100] w-[180px] md:w-[220px]" ref={dropdownRef}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between w-full md:w-64 gap-3 bg-white/90 backdrop-blur-sm border border-slate-200 px-5 py-3 rounded-2xl shadow-sm hover:shadow-md hover:border-blue-200 transition-all group"
+        className="flex items-center justify-between w-full gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 md:py-2 rounded-lg shadow-sm hover:shadow-md hover:border-blue-200 transition-all group"
       >
-        <div className="flex flex-col items-start">
-          <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-0.5">Navigation</span>
-          <span className="font-semibold text-slate-900 text-sm">{currentRoute.label}</span>
+        <div className="flex flex-col items-start truncate overflow-hidden">
+          <span className="font-semibold text-slate-800 text-xs md:text-sm truncate w-full text-left">{currentRoute.label}</span>
         </div>
-        <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-300 ${isOpen ? "rotate-180 text-blue-600" : ""}`} />
+        <ChevronDown className={`w-4 h-4 shrink-0 text-slate-500 transition-transform duration-300 ${isOpen ? "rotate-180 text-blue-600" : ""}`} />
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-3 w-full md:w-64 bg-white/95 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-xl overflow-hidden origin-top animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="p-2 flex flex-col gap-1">
+        <div className="absolute top-full right-0 mt-2 w-[240px] bg-white/95 backdrop-blur-xl border border-slate-200 rounded-xl shadow-xl overflow-hidden origin-top-right animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="p-1.5 flex flex-col gap-0.5">
             {availableRoutes.map((route) => (
               <Link
                 key={route.path}
                 href={route.path}
                 onClick={() => setIsOpen(false)}
-                className="px-4 py-3 rounded-xl text-sm font-medium text-slate-600 hover:text-blue-700 hover:bg-blue-50 transition-colors flex items-center justify-between"
+                className="px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:text-blue-700 hover:bg-blue-50 transition-colors flex items-center justify-between"
               >
                 {route.label}
               </Link>

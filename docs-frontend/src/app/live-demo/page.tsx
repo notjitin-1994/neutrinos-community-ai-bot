@@ -57,27 +57,27 @@ export default function LiveDemo() {
 
   const steps = [
     {
-      icon: <Activity className="w-5 h-5 text-blue-400" />,
+      icon: <Activity className="w-5 h-5 text-blue-600" />,
       title: "1. Continuous SLA Monitoring",
       desc: "The bot interfaces with the Discourse API via asynchronous polling, continuously analyzing thread timestamps against the strict, globally configured SLA grace windows."
     },
     {
-      icon: <Database className="w-5 h-5 text-cyan-400" />,
+      icon: <Database className="w-5 h-5 text-blue-600" />,
       title: "2. Contextual Knowledge Ingestion",
       desc: "Verified technical documentation and historically solved community threads are processed via semantic chunking and ingested into a local ChromaDB vector environment."
     },
     {
-      icon: <Search className="w-5 h-5 text-blue-400" />,
+      icon: <Search className="w-5 h-5 text-blue-600" />,
       title: "3. Retrieval-Augmented Generation",
       desc: "Upon detecting an SLA breach, the bot executes a vector similarity search using NVIDIA's nv-embed-v1 model to instantly retrieve the most contextually relevant engineering documentation."
     },
     {
-      icon: <ShieldCheck className="w-5 h-5 text-cyan-400" />,
+      icon: <ShieldCheck className="w-5 h-5 text-blue-600" />,
       title: "4. Confidence Scoring Guardrails",
       desc: "A proprietary, deterministic confidence algorithm evaluates the retrieval quality. Only when the safety threshold is met does the Llama 3.1 70B model formulate a cited response."
     },
     {
-      icon: <CheckCircle className="w-5 h-5 text-blue-400" />,
+      icon: <CheckCircle className="w-5 h-5 text-blue-600" />,
       title: "5. Idempotent Resolution",
       desc: "The response is seamlessly posted back to Discourse. The internal SQLite state machine immediately registers the thread as resolved to guarantee strict idempotency."
     }

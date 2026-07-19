@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
-import { Server, Database, BrainCircuit, MessageSquare, ShieldAlert, Cpu, Activity, Send, Layers } from "lucide-react";
+import { Server, Database, BrainCircuit, MessageSquare, ShieldAlert, Cpu, Activity, Send, Layers, RefreshCw } from "lucide-react";
 
 const ARCHITECTURE_NODES = [
   {
@@ -47,6 +47,13 @@ const ARCHITECTURE_NODES = [
     title: "6. Discourse Post-back",
     subtitle: "Resolution & Escalation",
     details: "If confident, posts the generated, cited answer back to the Discourse thread. If unconfident, posts a fallback message pinging a human expert (@neutrinos_champion). Records final state to prevent duplicate runs."
+  },
+  {
+    id: "feedback",
+    icon: <RefreshCw className="w-6 h-6" />,
+    title: "7. Self-Learning & Feedback Loop",
+    subtitle: "Dynamic Ingestion & Community UX",
+    details: "The bot autonomously ingests newly resolved human threads into its vector database, dynamically growing its knowledge base. It also appends a 'Was this helpful?' prompt to all replies, establishing a continuous human-in-the-loop UX."
   }
 ];
 

@@ -15,8 +15,12 @@ Discourse → SLA Monitor (poll) → "Answered?" Rule → RAG Pipeline → Confi
 
 ### Polling Model
 - Primary trigger: polling `/latest.json` every 30 seconds
-- Bonus: `/webhook` endpoint for event-driven triggering
 - Polling is robust: no public URL needed, survives restarts, handles transient failures via exponential backoff
+
+### Why Polling Over Real-Time Webhooks?
+Although Discourse supports real-time webhooks, a polling architecture was deliberately chosen for this Human-in-the-Loop (HITL) implementation:
+1. **SLA Delay Requirement:** The bot's core premise is to wait for the SLA window (e.g., 5 minutes) to give human experts the first opportunity to reply. Webhooks fire immediately upon post creation. Using webhooks would require building a stateful delayed-job queue (like Celery or Redis) to hold the event for the duration of the SLA window, significantly increasing architectural complexity.
+2. **Community-First Approach:** Real-time, instant AI answers displace human engagement. By polling and evaluating the "age" of a topic, the bot naturally functions as a safety net rather than an aggressive first responder.
 
 ### State Persistence
 - **Chroma vectors:** disk-persisted at `chroma/` — survive restarts, no re-embedding needed

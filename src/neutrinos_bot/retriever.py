@@ -51,7 +51,9 @@ async def retrieve(
     dists = results.get("distances", [[]])[0]
 
     for doc, meta, dist in zip(docs, metas, dists, strict=False):
-        similarity = 1.0 - dist
+        # Chroma defaults to squared L2 distance. For unit vectors, L2^2 = 2 - 2*cosine.
+        # Therefore, cosine_similarity = 1 - (L2^2 / 2).
+        similarity = 1.0 - (dist / 2.0)
         chunks.append(RetrievedChunk(
             text=doc,
             source=meta.get("source", "unknown"),

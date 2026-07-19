@@ -22,18 +22,16 @@ COLLECTION_NAME = "neutrinos_knowledge"
 
 
 def chunk_text(text: str, size: int = CHUNK_SIZE, overlap: int = CHUNK_OVERLAP) -> list[str]:
-    """Split text into overlapping chunks of approximately *size* characters."""
+    """Split text intelligently using LangChain's RecursiveCharacterTextSplitter."""
     if not text.strip():
         return []
-    chunks: list[str] = []
-    start = 0
-    while start < len(text):
-        end = start + size
-        chunk = text[start:end].strip()
-        if chunk:
-            chunks.append(chunk)
-        start += size - overlap
-    return chunks
+    from langchain_text_splitters import RecursiveCharacterTextSplitter
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=size,
+        chunk_overlap=overlap,
+        separators=["\n\n", "\n", " ", ""]
+    )
+    return splitter.split_text(text)
 
 
 def extract_pdf_text(pdf_path: Path) -> list[dict[str, Any]]:

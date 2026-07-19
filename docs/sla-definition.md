@@ -14,7 +14,7 @@ The bot intervenes only when a topic is **unresolved** AND has **breached the SL
 
 A topic is **resolved** (bot must NOT intervene) if ANY of:
 1. It has an **accepted solution** (Solved plugin) — `accepted_answer_post_id` is set
-2. The **last post** is from a **non-bot, non-OP human** AND was created within the **grace window**
+2. The **last post** is from a **non-bot, non-OP human**.
 
 A topic is an **SLA candidate** if ALL of:
 - `now - created_at > SLA_WINDOW`
@@ -42,8 +42,7 @@ ops_karan:   "Yeah it's a Human Task. But the assignee left the company..."
 ```python
 resolved = accepted_solution OR (
     last_post.author != OP AND
-    last_post.author != bot AND
-    age(last_post) < grace
+    last_post.author != bot
 )
 ```
 

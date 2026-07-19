@@ -89,7 +89,7 @@ class DiscourseClient:
     # ---- Write ----
 
     async def create_post(
-        self, topic_id: int, raw: str, reply_to_post_number: int | None = None
+        self, topic_id: int, raw: str, reply_to_post_number: int | None = None, api_username: str | None = None
     ) -> dict[str, Any]:
         """POST /posts.json — create a new post in a topic."""
         payload: dict[str, Any] = {"topic_id": topic_id, "raw": raw}
@@ -98,10 +98,10 @@ class DiscourseClient:
         if self._dry_run:
             logger.info("[DRY-RUN] Would post to topic %d: %s", topic_id, raw[:200])
             return {"dry_run": True, "topic_id": topic_id}
-        return await self._post("/posts.json", json=payload)
+        return await self._post("/posts.json", json=payload, api_username=api_username)
 
     async def create_topic(
-        self, title: str, raw: str, category: int, tags: list[str] | None = None
+        self, title: str, raw: str, category: int, tags: list[str] | None = None, api_username: str | None = None
     ) -> dict[str, Any]:
         """Create a new topic (Discourse creates topics via the posts endpoint)."""
         payload: dict[str, Any] = {"title": title, "raw": raw, "category": category}
@@ -110,18 +110,25 @@ class DiscourseClient:
         if self._dry_run:
             logger.info("[DRY-RUN] Would create topic: %s", title)
             return {"dry_run": True, "title": title}
-        return await self._post("/posts.json", json=payload)
+        return await self._post("/posts.json", json=payload, api_username=api_username)
 
-    async def set_accepted_answer(self, topic_id: int, post_id: int) -> dict[str, Any]:
+    async def set_accepted_answer(self, topic_id: int, post_id: int, api_username: str | None = None) -> dict[str, Any]:
         """Mark a post as accepted solution (Solved plugin)."""
         if self._dry_run:
             logger.info("[DRY-RUN] Would mark post %d as solution for topic %d", post_id, topic_id)
             return {"dry_run": True}
         try:
-            return await self._post(f"/t/{topic_id}/posts/{post_id}/accepted-answer", json={})
+            return await self._post("/solution/accept.json", json={"id": post_id}, api_username=api_username)
         except httpx.HTTPStatusError as exc:
             logger.warning("set_accepted_answer failed: %s (plugin may not be enabled)", exc)
             return {"error": str(exc)}
+
+    async def delete_topic(self, topic_id: int, api_username: str | None = None) -> dict[str, Any]:
+        """DELETE /t/{id}.json — delete a topic."""
+        if self._dry_run:
+            logger.info("[DRY-RUN] Would delete topic %d", topic_id)
+            return {"dry_run": True}
+        return await self._delete(f"/t/{topic_id}.json", api_username=api_username)
 
     # ---- Low-level ----
 
@@ -131,8 +138,52 @@ class DiscourseClient:
         resp.raise_for_status()
         return resp.json()
 
-    async def _post(self, path: str, **kwargs: Any) -> dict[str, Any]:
+    async def _post(self, path: str, api_username: str | None = None, **kwargs: Any) -> dict[str, Any]:
+        import asyncio
+        if api_username:
+            headers = self._headers.copy()
+            headers["Api-Username"] = api_username
+            if "headers" in kwargs:
+                headers.update(kwargs["headers"])
+            kwargs["headers"] = headers
+        
+        for attempt in range(5):
+            await self._limiter.acquire()
+            resp = await with_backoff(self._http.post, path, **kwargs)
+            if resp.status_code == 429:
+                wait_time = 20
+                if "Retry-After" in resp.headers:
+                    try:
+                        wait_time = int(resp.headers["Retry-After"])
+                    except ValueError:
+                        pass
+                else:
+                    try:
+                        data = resp.json()
+                        if "extras" in data and "wait_seconds" in data["extras"]:
+                            wait_time = int(data["extras"]["wait_seconds"])
+                    except Exception:
+                        pass
+                wait_time += 1  # Add a 1s safety buffer
+                logger.warning("Got 429 Too Many Requests, sleeping %ds and retrying...", wait_time)
+                await asyncio.sleep(wait_time)
+                continue
+            resp.raise_for_status()
+            return resp.json()
+        
+        raise Exception("Max retries exceeded for 429 Too Many Requests")
+
+    async def _delete(self, path: str, api_username: str | None = None, **kwargs: Any) -> dict[str, Any]:
         await self._limiter.acquire()
-        resp = await with_backoff(self._http.post, path, **kwargs)
+        if api_username:
+            headers = self._headers.copy()
+            headers["Api-Username"] = api_username
+            if "headers" in kwargs:
+                headers.update(kwargs["headers"])
+            kwargs["headers"] = headers
+        resp = await with_backoff(self._http.delete, path, **kwargs)
         resp.raise_for_status()
-        return resp.json()
+        try:
+            return resp.json()
+        except Exception:
+            return {}

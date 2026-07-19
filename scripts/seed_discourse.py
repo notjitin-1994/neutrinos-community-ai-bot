@@ -36,7 +36,7 @@ SEED_TOPICS = [
         "author": "dev_amit",
         "body": "I built a flow in Dev, everything runs fine. Promoted it to Test and now the connector step throws a 401 Connector Not Authorized error. I didn't change anything. What's going on?",
         "replies": [
-            {"author": "neutrinos_champion_sara", "body": "Credentials are environment-scoped in Neutrinos, they don't carry over automatically when you promote a flow. Go to Environment Settings in Test and re-authenticate the connector there — that fixes it every time.", "solution": True},
+            {"author": "champion_sara", "body": "Credentials are environment-scoped in Neutrinos, they don't carry over automatically when you promote a flow. Go to Environment Settings in Test and re-authenticate the connector there — that fixes it every time.", "solution": True},
         ],
     },
     {
@@ -52,7 +52,7 @@ SEED_TOPICS = [
         "author": "ops_karan",
         "body": "My flow has been sitting at one step for 2 days, status shows \"in progress\" but nothing is happening. Is the engine down?",
         "replies": [
-            {"author": "neutrinos_champion_leo", "body": "Which node is it stuck at? If it's a Human Task node that's expected — it's just waiting on the assignee.", "solution": False},
+            {"author": "champion_leo", "body": "Which node is it stuck at? If it's a Human Task node that's expected — it's just waiting on the assignee.", "solution": False},
             {"author": "ops_karan", "body": "Yeah it's a Human Task. But the assignee left the company, is there a way to reassign?", "solution": False},
         ],
     },
@@ -69,7 +69,7 @@ SEED_TOPICS = [
         "author": "partner_dev_ravi",
         "body": "Set up a webhook connector, tested with Postman and it works, but our production system's calls never trigger the flow. Payloads look identical to me.",
         "replies": [
-            {"author": "neutrinos_champion_sara", "body": "9 times out of 10 this is a webhook secret mismatch — double check the secret configured on the Neutrinos side matches exactly what your system is sending in the signature header.", "solution": True},
+            {"author": "champion_sara", "body": "9 times out of 10 this is a webhook secret mismatch — double check the secret configured on the Neutrinos side matches exactly what your system is sending in the signature header.", "solution": True},
         ],
     },
     {
@@ -99,7 +99,7 @@ SEED_TOPICS = [
         "author": "ops_karan",
         "body": "Seeing random 504 timeouts on one Action node calling an external legacy system that's known to be slow. Not every run, maybe 1 in 10.",
         "replies": [
-            {"author": "neutrinos_champion_leo", "body": "Increase the timeout on that node above the default 30s, and add a retry with exponential backoff as a fallback path — that's the standard pattern for known-slow external systems.", "solution": True},
+            {"author": "champion_leo", "body": "Increase the timeout on that node above the default 30s, and add a retry with exponential backoff as a fallback path — that's the standard pattern for known-slow external systems.", "solution": True},
         ],
     },
     {
@@ -161,28 +161,35 @@ async def seed(client: DiscourseClient, dry_run: bool = False) -> dict:
                 title=title,
                 raw=topic_data["body"],
                 category=cat_id,
+                api_username=topic_data.get("author"),
             )
             topic_id = topic_resp.get("topic_id") or topic_resp.get("id")
             results["topics"] += 1
             logger.info("Created topic '%s' (id=%s)", title, topic_id)
+            await asyncio.sleep(5)  # Prevent Discourse 429 rate limits
 
             for reply in topic_data["replies"]:
                 try:
                     post_resp = await client.create_post(
                         topic_id=topic_id,
                         raw=reply["body"],
+                        api_username=reply.get("author"),
                     )
                     results["replies"] += 1
+                    await asyncio.sleep(5)  # Prevent Discourse 429 rate limits
 
                     if reply.get("solution") and post_resp.get("id"):
-                        await client.set_accepted_answer(topic_id, post_resp["id"])
+                        await client.set_accepted_answer(topic_id, post_resp["id"], api_username=topic_data.get("author"))
                         results["solutions"] += 1
                         logger.info("Marked solution for '%s'", title)
                 except Exception as exc:
                     logger.error("Failed to post reply in '%s': %s", title, exc)
 
         except Exception as exc:
-            logger.error("Failed to create topic '%s': %s", title, exc)
+            if hasattr(exc, "response") and hasattr(exc.response, "text"):
+                logger.error("Failed to create topic '%s': %s - %s", title, exc, exc.response.text)
+            else:
+                logger.error("Failed to create topic '%s': %s", title, exc)
 
     logger.info("Seed complete: %s", results)
     return results

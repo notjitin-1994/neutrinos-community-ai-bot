@@ -17,7 +17,7 @@ def test_config_loads_from_env():
     assert settings.discourse_api_username
     assert settings.nvidia_base_url == "https://integrate.api.nvidia.com/v1"
     assert settings.nvidia_embed_model == "nvidia/nv-embed-v1"
-    assert settings.nvidia_gen_model == "nvidia/llama-3.1-70b-instruct"
+    assert settings.nvidia_gen_model == "meta/llama-3.1-70b-instruct"
     assert settings.rate_limit_rpm == 30
     assert settings.sla_window_minutes == 5
     assert settings.confidence_threshold == 0.35

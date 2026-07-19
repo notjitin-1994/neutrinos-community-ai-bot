@@ -1,0 +1,76 @@
+import Link from "next/link";
+
+const DELIVERABLES = [
+  {
+    id: "live-demo",
+    title: "Live Working Bot Demo",
+    description: "Watch a live video demonstration of the Community AI SLA Bot interacting with discourse in real-time.",
+    href: "/live-demo",
+    icon: "▶️",
+  },
+  {
+    id: "architecture",
+    title: "Architectural Diagram",
+    description: "High-level system architecture outlining FastApi, LangChain, NVIDIA NIMs, and ChromaDB integrations.",
+    href: "/architecture",
+    icon: "🏗️",
+  },
+  {
+    id: "rag-design",
+    title: "RAG Design Notes",
+    description: "Deep dive into our Retrieval-Augmented Generation strategy, semantic chunking, and confidence scoring algorithms.",
+    href: "/rag-design",
+    icon: "🧠",
+  },
+  {
+    id: "sla-definitions",
+    title: "SLA & Answered Definitions",
+    description: "Detailed logic for SLA guardrails, grace periods, and idempotent state management in discourse.",
+    href: "/sla-definitions",
+    icon: "⏱️",
+  },
+  {
+    id: "production-plan",
+    title: "Go-to-Production Plan",
+    description: "Design document detailing how this system scales to production grade for community issue resolution.",
+    href: "/production-plan",
+    icon: "🚀",
+  },
+];
+
+export default function Home() {
+  return (
+    <div className="flex flex-col gap-12 w-full animate-fade-in-up opacity-0">
+      <header className="flex flex-col gap-4 max-w-3xl">
+        <h1 className="text-5xl font-extrabold tracking-tight">
+          Community AI SLA <span className="text-gradient">Bot</span>
+        </h1>
+        <p className="text-xl text-white/60 leading-relaxed font-light">
+          Welcome to the project deliverables dashboard. This interface provides access to the complete documentation, design notes, and live demonstrations for the Neutrinos SLA integration.
+        </p>
+      </header>
+
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {DELIVERABLES.map((item, i) => (
+          <Link
+            key={item.id}
+            href={item.href}
+            className={`glass-panel p-8 flex flex-col gap-4 hover-glow cursor-pointer group opacity-0 animate-fade-in-up stagger-${i + 1}`}
+          >
+            <div className="text-4xl bg-white/5 w-16 h-16 rounded-xl flex items-center justify-center group-hover:scale-110 group-hover:bg-blue-500/10 transition-all duration-300">
+              {item.icon}
+            </div>
+            <div>
+              <h2 className="text-xl font-bold mb-2 group-hover:text-blue-400 transition-colors">
+                {item.title}
+              </h2>
+              <p className="text-sm text-white/50 leading-relaxed">
+                {item.description}
+              </p>
+            </div>
+          </Link>
+        ))}
+      </section>
+    </div>
+  );
+}

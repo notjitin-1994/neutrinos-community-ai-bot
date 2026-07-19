@@ -21,8 +21,10 @@ CREATE TABLE IF NOT EXISTS bot_state (
     first_seen    REAL,
     last_human_at REAL,
     last_checked  REAL,
-    created_at    REAL DEFAULT (strftime('%s','now'))
+    created_at    REAL DEFAULT (strftime('%s','now')),
+    ingested      INTEGER DEFAULT 0
 );
+
 """
 
 
@@ -39,6 +41,10 @@ class StateStore:
         self._conn = sqlite3.connect(self._db_path)
         self._conn.row_factory = sqlite3.Row
         self._conn.executescript(_SCHEMA)
+        try:
+            self._conn.execute("ALTER TABLE bot_state ADD COLUMN ingested INTEGER DEFAULT 0;")
+        except sqlite3.OperationalError:
+            pass # column might already exist
         self._conn.commit()
         logger.info("StateStore connected to %s", self._db_path)
 
@@ -62,6 +68,14 @@ class StateStore:
             "SELECT bot_answered FROM bot_state WHERE topic_id = ?", (topic_id,)
         ).fetchone()
         return bool(row and row["bot_answered"])
+
+    def is_ingested(self, topic_id: int) -> bool:
+        """Check if the topic has been ingested into vector DB."""
+        row = self.conn.execute(
+            "SELECT ingested FROM bot_state WHERE topic_id = ?", (topic_id,)
+        ).fetchone()
+        return bool(row and row["ingested"])
+
 
     def get_state(self, topic_id: int) -> dict | None:
         """Get full state row for a topic, or None if unknown."""
@@ -120,6 +134,20 @@ class StateStore:
         )
         self.conn.commit()
         logger.info("Marked topic %d as answered (type=%s, conf=%s)", topic_id, answer_type, confidence)
+
+    def mark_ingested(self, topic_id: int) -> None:
+        """Mark a topic as ingested into vector DB. Idempotent."""
+        self.conn.execute(
+            """
+            INSERT INTO bot_state (topic_id, ingested)
+            VALUES (?, 1)
+            ON CONFLICT(topic_id) DO UPDATE SET ingested = 1
+            """,
+            (topic_id,)
+        )
+        self.conn.commit()
+        logger.info("Marked topic %d as ingested", topic_id)
+
 
     def update_last_checked(self, topic_id: int) -> None:
         """Update last_checked timestamp for a topic."""

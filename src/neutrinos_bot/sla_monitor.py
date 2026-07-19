@@ -57,16 +57,8 @@ def is_resolved(
     if last_author == op_username:
         return False
 
-    now = time.time()
-    from datetime import datetime, timezone
-
-    try:
-        post_time = datetime.fromisoformat(last_created.replace("Z", "+00:00")).timestamp()
-    except (ValueError, AttributeError):
-        return False
-
-    age = now - post_time
-    return age < grace_seconds
+    # If the last author is neither the OP nor the bot, a human expert has replied.
+    return True
 
 
 async def find_sla_candidates(
@@ -106,23 +98,64 @@ async def find_sla_candidates(
         full_topic = await client.get_topic(topic_id)
         posts = full_topic.get("post_stream", {}).get("posts", [])
         accepted_pid = full_topic.get("accepted_answer_post_id")
+        
+        # Ignore system-generated topics like Guidelines, Welcome to Discourse
+        first_post = posts[0] if posts else {}
+        if first_post.get("username") == "system":
+            state.mark_ingested(topic_id)  # Mark so we don't keep polling it
+            continue
 
         if is_resolved(posts, accepted_pid, grace_seconds):
+            if not state.is_ingested(topic_id):
+                try:
+                    from neutrinos_bot.ingest import ingest_community_thread
+                    title = topic.get("title", "")
+                    question = posts[0].get("cooked", posts[0].get("raw", "")) if posts else ""
+                    # Combine all human replies as the "answer"
+                    human_replies = [p.get("cooked", p.get("raw", "")) for p in posts[1:] if p.get("username") != "neutrinos_bot"]
+                    answer = "\n\n".join(human_replies)
+                    if answer:
+                        # Call ingest, but it's an async function so we await it
+                        logger.info("Dynamically ingesting resolved topic #%d", topic_id)
+                        await ingest_community_thread(topic_id, title, question, answer)
+                        state.mark_ingested(topic_id)
+                except Exception as e:
+                    logger.error("Failed to dynamically ingest topic #%d: %s", topic_id, e)
             continue
 
         first_post = posts[0] if posts else {}
         last_post = posts[-1] if posts else {}
+        
+        human_replies = [p.get("cooked", p.get("raw", "")) for p in posts[1:] if p.get("username") != "neutrinos_bot"]
 
         state.record_topic_seen(topic_id)
+        
+        # Guardrail: don't fire if a human (e.g. OP) replied in the last N minutes
+        last_created_str = last_post.get("created_at", "")
+        if last_created_str:
+            try:
+                from datetime import datetime, timezone
+                last_created_time = datetime.fromisoformat(last_created_str.replace("Z", "+00:00")).timestamp()
+                last_post_age_minutes = (now - last_created_time) / 60
+                if last_post_age_minutes < grace_minutes:
+                    continue
+            except (ValueError, AttributeError):
+                pass
+
+        # The pending question is the last post, which provides the most recent context
+        pending_question = last_post.get("cooked", last_post.get("raw", ""))
 
         candidates.append(SLACandidate(
             topic_id=topic_id,
             title=topic.get("title", ""),
-            question=first_post.get("cooked", first_post.get("raw", "")),
+            question=pending_question,
             created_at=created_str,
             last_post_author=last_post.get("username", ""),
             posts=posts,
         ))
+        # Add a new field dynamically without breaking dataclass if it doesn't exist, but we can just use posts.
+        # Actually, let's just pass human_replies as part of the SLACandidate or we can reconstruct it in generator.
+
         logger.info("SLA breach: topic #%d '%s' (age %.0fmin)", topic_id, topic.get("title", ""), age_minutes)
 
     logger.info("Found %d SLA candidates", len(candidates))

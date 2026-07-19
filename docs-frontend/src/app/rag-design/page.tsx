@@ -1,117 +1,149 @@
+"use client";
+
 import Link from "next/link";
 import { Database, Search, Cpu, ShieldAlert } from "lucide-react";
+import gsap from "gsap";
+import { useEffect, useRef } from "react";
 
 export default function RagDesign() {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.fromTo(".stagger-block", 
+        { opacity: 0, y: 30 },
+        { opacity: 1, y: 0, duration: 0.8, stagger: 0.15, ease: "power3.out" }
+      );
+    }, containerRef);
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <div className="flex flex-col max-w-4xl mx-auto w-full pb-20 animate-fade-in-up opacity-0">
-      <Link href="/" className="text-sm text-blue-600 hover:text-blue-500 w-fit flex items-center gap-2 mb-8 transition-colors font-medium">
+    <div className="max-w-3xl mx-auto w-full pb-32" ref={containerRef}>
+      <Link href="/" className="stagger-block text-sm text-blue-600 hover:text-blue-700 w-fit flex items-center gap-2 mb-16 transition-colors font-semibold tracking-wide uppercase">
         <span>←</span> Back to Dashboard
       </Link>
       
-      <header className="mb-12">
-        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 mb-4">
+      <header className="stagger-block mb-24">
+        <h1 className="text-[2.75rem] leading-[1.1] md:text-6xl font-black tracking-tight text-slate-900 mb-6 text-balance">
           RAG Pipeline Design
         </h1>
-        <p className="text-xl text-slate-600 leading-relaxed font-light">
-          A deep dive into the underlying mechanics of our Retrieval-Augmented Generation strategy. This document outlines our approach to semantic chunking, embedding generation, model selection, and hallucination guardrails.
+        <p className="text-xl md:text-2xl text-slate-600 leading-relaxed font-light text-balance">
+          A deep dive into the underlying mechanics of our Retrieval-Augmented Generation strategy. Eschewing black-box wrappers, we built a deterministic pipeline optimized for extreme technical accuracy.
         </p>
       </header>
 
-      <div className="flex flex-col gap-8">
-        
-        {/* Section 1: Chunking Strategy */}
-        <section className="bg-white border border-slate-200 rounded-2xl p-8 md:p-10 shadow-sm">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+      <div className="relative">
+        {/* Continuous architectural line */}
+        <div className="absolute left-6 top-2 bottom-0 w-px bg-slate-200 hidden md:block" />
+
+        <div className="flex flex-col gap-20">
+          
+          {/* Section 1: Chunking Strategy */}
+          <section className="stagger-block relative md:pl-20">
+            <div className="hidden md:flex absolute left-0 top-0 w-12 h-12 bg-white border border-slate-200 rounded-full items-center justify-center text-blue-600 shadow-sm z-10">
+              <Database className="w-5 h-5" />
+            </div>
+            <div className="flex items-center gap-3 mb-6 md:hidden text-blue-600">
               <Database className="w-6 h-6" />
             </div>
-            <h2 className="text-2xl font-bold text-slate-900">1. Data Ingestion & Chunking Strategy</h2>
-          </div>
-          <div className="prose prose-slate max-w-none text-slate-600">
-            <p>
-              The foundation of our RAG pipeline relies on high-fidelity knowledge extraction from both static documentation (PDFs) and dynamic community knowledge (solved Discourse threads).
-            </p>
-            <ul className="mt-4 space-y-2 list-disc pl-5">
-              <li><strong>Algorithm:</strong> LangChain&apos;s <code>RecursiveCharacterTextSplitter</code>.</li>
-              <li><strong>Parameters:</strong> <code>chunk_size = 600</code> and <code>chunk_overlap = 100</code>.</li>
-              <li><strong>Rationale:</strong> A 600-token chunk size optimally encapsulates technical API contexts and JSON structures without losing semantic meaning. The 100-token overlap prevents context fracturing at sentence boundaries.</li>
-              <li><strong>Dynamic Growth:</strong> Unlike static implementations, our bot autonomously parses and chunks newly solved community threads, actively growing the vector database from the community itself.</li>
-            </ul>
-          </div>
-        </section>
+            
+            <h2 className="text-3xl font-bold text-slate-900 mb-6 tracking-tight text-balance">Data Ingestion & Chunking</h2>
+            <div className="prose prose-lg prose-slate prose-a:text-blue-600 max-w-none text-slate-600 leading-relaxed">
+              <p>
+                The foundation of our pipeline relies on high-fidelity knowledge extraction. To preserve the structure of Neutrinos&apos; API schemas and JSON objects, we rely on a precise token overlap mechanism rather than naive splitting.
+              </p>
+              <ul className="mt-6 space-y-3">
+                <li><strong className="text-slate-900 font-semibold tracking-tight">Algorithm:</strong> Recursive Character Text Splitting ensures we don&apos;t shatter critical code blocks mid-sentence.</li>
+                <li><strong className="text-slate-900 font-semibold tracking-tight">Density Parameters:</strong> We enforce a strict <code>chunk_size</code> of 600 tokens with a 100-token overlap, optimizing for deep context over shallow breadth.</li>
+                <li><strong className="text-slate-900 font-semibold tracking-tight">Community Autonomy:</strong> The system organically ingests newly solved Discourse threads on the fly. As the community resolves complex edge cases, the bot learns them instantly.</li>
+              </ul>
+            </div>
+          </section>
 
-        {/* Section 2: Retrieval Method */}
-        <section className="bg-white border border-slate-200 rounded-2xl p-8 md:p-10 shadow-sm">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+          {/* Section 2: Retrieval Method */}
+          <section className="stagger-block relative md:pl-20">
+            <div className="hidden md:flex absolute left-0 top-0 w-12 h-12 bg-white border border-slate-200 rounded-full items-center justify-center text-blue-600 shadow-sm z-10">
+              <Search className="w-5 h-5" />
+            </div>
+            <div className="flex items-center gap-3 mb-6 md:hidden text-blue-600">
               <Search className="w-6 h-6" />
             </div>
-            <h2 className="text-2xl font-bold text-slate-900">2. Vector Retrieval Engine</h2>
-          </div>
-          <div className="prose prose-slate max-w-none text-slate-600">
-            <p>
-              We opted for dense vector embeddings rather than traditional keyword (BM25) search, given the nuanced, semantic nature of community troubleshooting.
-            </p>
-            <ul className="mt-4 space-y-2 list-disc pl-5">
-              <li><strong>Embedding Model:</strong> NVIDIA <code>nv-embed-v1</code>. Its high dimensionality and technical comprehension make it ideal for mapping highly specific engineering concepts.</li>
-              <li><strong>Vector Database:</strong> Local <code>ChromaDB (PersistentClient)</code> for sub-millisecond retrieval without network latency.</li>
-              <li><strong>Execution:</strong> We retrieve the top-K (K=5) chunks based on Cosine Similarity (derived from Chroma&apos;s squared L2 distance).</li>
-            </ul>
-          </div>
-        </section>
 
-        {/* Section 3: AI Model Selection */}
-        <section className="bg-white border border-slate-200 rounded-2xl p-8 md:p-10 shadow-sm">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+            <h2 className="text-3xl font-bold text-slate-900 mb-6 tracking-tight text-balance">Semantic Vector Search</h2>
+            <div className="prose prose-lg prose-slate prose-a:text-blue-600 max-w-none text-slate-600 leading-relaxed">
+              <p>
+                Traditional BM25 keyword search fails spectacularly when users describe errors using unconventional terminology. To solve this, we operate entirely in dense vector space.
+              </p>
+              <ul className="mt-6 space-y-3">
+                <li><strong className="text-slate-900 font-semibold tracking-tight">Embedding Model:</strong> We utilize NVIDIA&apos;s <code>nv-embed-v1</code>. Its high dimensionality maps highly specific engineering concepts—like Node permutations—into mathematically neighboring space.</li>
+                <li><strong className="text-slate-900 font-semibold tracking-tight">Storage:</strong> A localized, persistent instance of <code>ChromaDB</code> guarantees sub-millisecond retrieval latency without network round-trips.</li>
+                <li><strong className="text-slate-900 font-semibold tracking-tight">Cosine Similarity:</strong> We retrieve exactly 5 chunks by computing the squared L2 distance, guaranteeing mathematical proximity to the user&apos;s intent.</li>
+              </ul>
+            </div>
+          </section>
+
+          {/* Section 3: AI Model Selection */}
+          <section className="stagger-block relative md:pl-20">
+            <div className="hidden md:flex absolute left-0 top-0 w-12 h-12 bg-white border border-slate-200 rounded-full items-center justify-center text-blue-600 shadow-sm z-10">
+              <Cpu className="w-5 h-5" />
+            </div>
+            <div className="flex items-center gap-3 mb-6 md:hidden text-blue-600">
               <Cpu className="w-6 h-6" />
             </div>
-            <h2 className="text-2xl font-bold text-slate-900">3. Generation (LLM)</h2>
-          </div>
-          <div className="prose prose-slate max-w-none text-slate-600">
-            <p>
-              The retrieved context, alongside the complete conversation history of the thread, is passed to our generative backend to formulate a response.
-            </p>
-            <ul className="mt-4 space-y-2 list-disc pl-5">
-              <li><strong>Model:</strong> <code>llama-3.1-70b-instruct</code> hosted via NVIDIA NIM.</li>
-              <li><strong>Why Llama 3.1 70B?</strong> It strikes the perfect balance of reasoning depth and latency. It possesses the instruction-following capabilities required to strictly adhere to context-only generation without the overhead of larger, slower proprietary models.</li>
-              <li><strong>Determinism:</strong> The temperature is strictly locked to <code>0.1</code> to prevent creative deviation and ensure consistent, factual technical answers.</li>
-            </ul>
-          </div>
-        </section>
 
-        {/* Section 4: Hallucination Mitigation */}
-        <section className="bg-white border border-slate-200 rounded-2xl p-8 md:p-10 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-            <ShieldAlert className="w-48 h-48 text-blue-900" />
-          </div>
-          <div className="flex items-center gap-4 mb-6 relative z-10">
-            <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+            <h2 className="text-3xl font-bold text-slate-900 mb-6 tracking-tight text-balance">Generative Backend</h2>
+            <div className="prose prose-lg prose-slate prose-a:text-blue-600 max-w-none text-slate-600 leading-relaxed">
+              <p>
+                The retrieved vector context, paired with the full Discourse conversation history, is channeled into a rigidly constrained generative pass.
+              </p>
+              <div className="my-8 p-6 bg-slate-100/50 rounded-xl border border-slate-200/60">
+                <p className="font-mono text-sm text-slate-700 m-0">
+                  <span className="text-blue-600 font-bold">MODEL_ID</span> = &quot;meta/llama-3.1-70b-instruct&quot;<br/>
+                  <span className="text-blue-600 font-bold">TEMPERATURE</span> = 0.1
+                </p>
+              </div>
+              <p>
+                We selected the 70B parameter variant of Llama 3.1 via NVIDIA NIM. It possesses the vast reasoning capabilities required to parse technical documentation, yet runs fast enough to maintain conversational cadence. By locking the temperature to 0.1, we eliminate creative deviation, forcing the model into an aggressively deterministic state.
+              </p>
+            </div>
+          </section>
+
+          {/* Section 4: Hallucination Mitigation */}
+          <section className="stagger-block relative md:pl-20">
+            <div className="hidden md:flex absolute left-0 top-0 w-12 h-12 bg-slate-900 border border-slate-900 rounded-full items-center justify-center text-white shadow-sm z-10">
+              <ShieldAlert className="w-5 h-5" />
+            </div>
+            <div className="flex items-center gap-3 mb-6 md:hidden text-slate-900">
               <ShieldAlert className="w-6 h-6" />
             </div>
-            <h2 className="text-2xl font-bold text-slate-900">4. Hallucination Mitigation Guardrails</h2>
-          </div>
-          <div className="prose prose-slate max-w-none text-slate-600 relative z-10">
-            <p>
-              To protect the integrity of the Neutrinos Community, we implemented a robust, multi-layered defense mechanism against AI hallucinations.
-            </p>
-            <ol className="mt-4 space-y-4 list-decimal pl-5">
-              <li>
-                <strong>Pre-generation Confidence Scoring:</strong> Before the LLM is even invoked, a deterministic algorithm evaluates the vector similarity scores of the retrieved chunks. If the relevance is below a strict threshold, generation is aborted entirely.
-              </li>
-              <li>
-                <strong>Prompt Engineering constraints:</strong> The system prompt explicitly commands the model to cite exact source names (e.g., <code>[Topic #195]</code>) inline, and explicitly forbids generic placeholders (e.g., <code>[1]</code>).
-              </li>
-              <li>
-                <strong>Post-generation Validation:</strong> The pipeline extracts citations from the LLM output using regex and string matching against the valid <code>source_ref</code> list. If the LLM generates an answer but fails to include valid citations—or if it outputs the fallback phrase—the system retroactively revokes confidence and scraps the answer.
-              </li>
-              <li>
-                <strong>Human Escalation Fallback:</strong> When guardrails are triggered, the bot refuses to guess. Instead, it posts an escalation message pinging a human expert (<code>@neutrinos_champion</code>), guaranteeing zero hallucination bleed into the community.
-              </li>
-            </ol>
-          </div>
-        </section>
 
+            <h2 className="text-3xl font-bold text-slate-900 mb-6 tracking-tight text-balance">Zero-Tolerance Hallucination Guardrails</h2>
+            <div className="prose prose-lg prose-slate max-w-none text-slate-600 leading-relaxed">
+              <p>
+                The single greatest threat to community trust is an AI confidently distributing incorrect engineering advice. We mitigate this through a multi-tiered rejection system.
+              </p>
+              
+              <div className="mt-8 space-y-8">
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">1. Pre-Flight Scoring</h3>
+                  <p>Before the LLM even boots, we evaluate the vector cosine similarity. If the retrieved chunks fail to meet our strict relevance threshold, the generation is instantly aborted.</p>
+                </div>
+                
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">2. Explicit Citation Locking</h3>
+                  <p>Our system prompts mandate that the model cite the exact Discourse Thread ID or PDF page number inline. Generic placeholders like <code>[1]</code> are programmatically rejected.</p>
+                </div>
+
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">3. Post-Generation Audits</h3>
+                  <p>We run a regex sweep over the generated text. If the model outputs an answer but fails to include a mathematically verifiable citation from the payload, we revoke confidence entirely. The answer is destroyed, and the bot publicly escalates to a human engineer.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+        </div>
       </div>
     </div>
   );

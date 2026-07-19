@@ -50,8 +50,8 @@ export default function Home() {
           Welcome to the project deliverables dashboard. This interface provides access to the complete documentation, design notes, and live demonstrations for the Neutrinos SLA integration.
         </p>
         <div className="flex items-center gap-4 mt-2">
-          <a href="http://localhost:4200" target="_blank" className="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm w-fit flex items-center gap-2">
-            Open Discourse Demo
+          <a href="https://nutrinosbotdemo.discourse.group/" target="_blank" className="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm w-fit flex items-center gap-2">
+            Open Discourse Demo Community
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
           </a>
         </div>

@@ -130,7 +130,7 @@ export default function LiveDemo() {
             Repository
           </a>
           <a 
-            href="http://localhost:4200" 
+            href="https://nutrinosbotdemo.discourse.group/" 
             target="_blank" 
             rel="noopener noreferrer"
             className="shrink-0 px-5 py-2.5 bg-blue-600 text-white hover:bg-blue-700 rounded-full font-medium transition-all flex items-center gap-2 text-sm shadow-sm hover:shadow-md hover:scale-105"

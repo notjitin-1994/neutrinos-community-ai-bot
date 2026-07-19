@@ -1,13 +1,20 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
+import Image from "next/image";
 
-const inter = Inter({ subsets: ["latin"] });
+const poppins = Poppins({ 
+  weight: ['300', '400', '500', '600', '700'],
+  subsets: ["latin"] 
+});
 
 export const metadata: Metadata = {
   title: "Neutrinos AI SLA Bot | Project Deliverables",
   description: "Documentation and Deliverables for the Neutrinos Community AI SLA Bot",
+  icons: {
+    icon: '/favicon.svg'
+  }
 };
 
 export default function RootLayout({
@@ -17,7 +24,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.className} min-h-screen flex flex-col relative`}>
+      <body className={`${poppins.className} min-h-screen flex flex-col relative`}>
         {/* Abstract Background Elements */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
           <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/20 rounded-full blur-[120px]" />
@@ -27,16 +34,14 @@ export default function RootLayout({
         {/* Global Navigation */}
         <header className="sticky top-0 z-50 glass-panel !rounded-none !border-x-0 !border-t-0 py-4 px-8 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center text-white font-bold text-xl shadow-[0_0_15px_rgba(0,102,255,0.5)] group-hover:shadow-[0_0_25px_rgba(0,102,255,0.8)] transition-all">
-              N
-            </div>
-            <span className="font-semibold text-lg tracking-wide text-white/90 group-hover:text-white transition-colors">
+            <Image src="/favicon.svg" alt="Neutrinos Logo" width={32} height={32} className="group-hover:scale-110 transition-transform" />
+            <span className="font-semibold text-xl tracking-wide text-white/90 group-hover:text-white transition-colors">
               Neutrinos
             </span>
           </Link>
           <nav className="flex items-center gap-6 text-sm font-medium text-white/60">
             <Link href="/" className="hover:text-white transition-colors">Dashboard</Link>
-            <a href="https://github.com" target="_blank" className="hover:text-white transition-colors">Repository</a>
+            <a href="https://github.com/notjitin-1994/neutrinos-community-ai-bot" target="_blank" className="hover:text-white transition-colors">Repository</a>
           </nav>
         </header>
 

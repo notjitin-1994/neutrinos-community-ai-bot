@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
+import mermaid from "mermaid";
 import { Server, Database, BrainCircuit, MessageSquare, ShieldAlert, Cpu, Activity, Send, Layers, RefreshCw } from "lucide-react";
 
 const ARCHITECTURE_NODES = [
@@ -57,33 +58,122 @@ const ARCHITECTURE_NODES = [
   }
 ];
 
+const MERMAID_CHART = `
+graph TD
+    %% Styling
+    classDef default fill:#ffffff,stroke:#cbd5e1,stroke-width:2px,color:#0f172a,rx:8px,ry:8px,font-family:Inter;
+    classDef highlight fill:#eff6ff,stroke:#3b82f6,stroke-width:2px,color:#1e3a8a;
+    classDef db fill:#f8fafc,stroke:#94a3b8,stroke-width:2px,color:#0f172a;
+
+    %% Entry points
+    subgraph trigger[Trigger Layer]
+        CLI["CLI Watch Loop<br/>(main.py)"]:::highlight
+        Webhook["FastAPI /webhook<br/>(main.py)"]:::highlight
+    end
+
+    %% Engine
+    subgraph sla_engine[SLA Engine]
+        SLA["SLA Monitor<br/>(sla_monitor.py)"]:::default
+        State[("SQLite StateStore")]:::db
+        DiscourseAPI["Discourse API<br/>(discourse_client.py)"]:::default
+    end
+
+    %% RAG Pipeline
+    subgraph rag[RAG Pipeline]
+        Retriever["Vector Retriever<br/>(retriever.py)"]:::highlight
+        Embed["NV-Embed-v1<br/>(nvidia_client.py)"]:::default
+        Chroma[("ChromaDB")]:::db
+        Gen["LLM Generator<br/>(generator.py)"]:::highlight
+        Llama["Llama 3.1 70B<br/>(nvidia_client.py)"]:::default
+        Conf{"Confidence<br/>Evaluator"}:::default
+    end
+
+    %% Action
+    subgraph action[Action Layer]
+        PostBack["Discourse Post-back<br/>(post_back.py)"]:::highlight
+        Human["Human Escalation<br/>(@neutrinos_champion)"]:::default
+    end
+
+    %% Flows
+    CLI --> SLA
+    Webhook --> SLA
+    SLA <--> DiscourseAPI
+    SLA <--> State
+    
+    SLA -- "Breached Topics" --> Retriever
+    Retriever <--> Embed
+    Retriever <--> Chroma
+    
+    Retriever -- "Top-K Context" --> Conf
+    
+    Conf -- "High Score" --> Gen
+    Conf -- "Low Score" --> Human
+    
+    Gen <--> Llama
+    Gen -- "Formatted Answer + Citations" --> PostBack
+    
+    PostBack --> DiscourseAPI
+    PostBack -- "Mark Answered" --> State
+    
+    %% Dynamic Ingestion Loop
+    DiscourseAPI -. "New Resolved Human Threads" .-> Ingest["Ingestion Engine<br/>(ingest.py)"]:::highlight
+    Ingest -. "Upsert Embeddings" .-> Chroma
+`;
+
 export default function Architecture() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const mermaidRef = useRef<HTMLDivElement>(null);
   const [activeNode, setActiveNode] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"interactive" | "mermaid">("interactive");
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      // Timeline for initial render
-      const tl = gsap.timeline();
-      
-      tl.fromTo(".page-header", 
-        { opacity: 0, y: -20 }, 
-        { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }
-      )
-      .fromTo(".arch-node", 
-        { opacity: 0, scale: 0.9, y: 20 },
-        { opacity: 1, scale: 1, y: 0, duration: 0.5, stagger: 0.1, ease: "back.out(1.2)" },
-        "-=0.2"
-      )
-      .fromTo(".connector-line", 
-        { width: 0, opacity: 0 },
-        { width: "100%", opacity: 1, duration: 0.4, stagger: 0.1, ease: "power2.out" },
-        "-=0.5"
-      );
-    }, containerRef);
-
-    return () => ctx.revert();
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: "base",
+      themeVariables: {
+        fontFamily: "Inter, sans-serif",
+        primaryColor: "#ffffff",
+        primaryTextColor: "#0f172a",
+        primaryBorderColor: "#cbd5e1",
+        lineColor: "#94a3b8",
+        secondaryColor: "#f8fafc",
+        tertiaryColor: "#eff6ff"
+      },
+    });
   }, []);
+
+  useEffect(() => {
+    if (activeTab === "mermaid" && mermaidRef.current) {
+      mermaidRef.current.innerHTML = MERMAID_CHART;
+      mermaid.contentLoaded();
+      mermaid.init(undefined, mermaidRef.current);
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab === "interactive") {
+      const ctx = gsap.context(() => {
+        const tl = gsap.timeline();
+        
+        tl.fromTo(".page-header", 
+          { opacity: 0, y: -20 }, 
+          { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }
+        )
+        .fromTo(".arch-node", 
+          { opacity: 0, scale: 0.9, y: 20 },
+          { opacity: 1, scale: 1, y: 0, duration: 0.5, stagger: 0.1, ease: "back.out(1.2)" },
+          "-=0.2"
+        )
+        .fromTo(".connector-line", 
+          { width: 0, opacity: 0 },
+          { width: "100%", opacity: 1, duration: 0.4, stagger: 0.1, ease: "power2.out" },
+          "-=0.5"
+        );
+      }, containerRef);
+
+      return () => ctx.revert();
+    }
+  }, [activeTab]);
 
   const handleNodeClick = (id: string) => {
     setActiveNode(id === activeNode ? null : id);
@@ -104,83 +194,102 @@ export default function Architecture() {
       </Link>
       
       <div className="page-header bg-white border border-slate-200 rounded-2xl p-8 md:p-12 shadow-sm mb-4 relative overflow-hidden">
-        {/* Subtle background decoration */}
         <div className="absolute top-0 right-0 p-16 opacity-5 pointer-events-none">
           <Layers className="w-64 h-64 text-blue-900" />
         </div>
 
         <h1 className="text-3xl font-bold mb-3 text-slate-900">System Architecture</h1>
-        <p className="text-slate-600 max-w-3xl leading-relaxed">
-          Interactive architectural diagram derived directly from the production Python codebase. 
-          Click on any node in the data pipeline to understand the underlying technical implementation, state management, and LLM integrations.
+        <p className="text-slate-600 max-w-3xl leading-relaxed mb-8">
+          Explore the architectural design of the Community AI SLA Bot. Both views below are derived entirely from the Python source code, offering true visibility into the active pipeline mechanics.
         </p>
-      </div>
 
-      <div className="flex flex-col lg:flex-row gap-8 items-start">
-        {/* Interactive Diagram Canvas */}
-        <div className="w-full lg:w-2/3 bg-slate-50 border border-slate-200 rounded-2xl p-8 md:p-12 relative shadow-inner">
-          <div className="flex flex-col gap-6 relative z-10">
-            {ARCHITECTURE_NODES.map((node, i) => (
-              <div key={node.id} className="relative flex items-center justify-center w-full">
-                {/* Node Box */}
-                <div 
-                  onClick={() => handleNodeClick(node.id)}
-                  className={`arch-node relative z-10 flex items-center gap-4 p-5 rounded-xl border-2 transition-all duration-300 cursor-pointer w-full max-w-md shadow-sm ${
-                    activeNode === node.id 
-                      ? "bg-blue-50 border-blue-500 shadow-[0_0_20px_rgba(37,99,235,0.15)] scale-105" 
-                      : "bg-white border-slate-200 hover:border-blue-300 hover:bg-slate-50"
-                  }`}
-                >
-                  <div className={`p-3 rounded-lg flex-shrink-0 transition-colors ${activeNode === node.id ? "bg-blue-600 text-white" : "bg-slate-100 text-blue-600"}`}>
-                    {node.icon}
-                  </div>
-                  <div>
-                    <h3 className={`font-bold transition-colors ${activeNode === node.id ? "text-blue-700" : "text-slate-800"}`}>
-                      {node.title}
-                    </h3>
-                    <p className="text-xs font-medium text-slate-500 mt-0.5">{node.subtitle}</p>
-                  </div>
-                </div>
-
-                {/* Connector Line to next node */}
-                {i < ARCHITECTURE_NODES.length - 1 && (
-                  <div className="absolute top-[100%] left-1/2 -translate-x-1/2 h-6 w-0.5 z-0 flex flex-col justify-end overflow-hidden">
-                    <div className="connector-line bg-slate-300 w-full h-full"></div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Details Panel */}
-        <div className="w-full lg:w-1/3 sticky top-28">
-          <div 
-            id="details-panel"
-            className="bg-white border border-slate-200 rounded-2xl p-8 shadow-md min-h-[350px] flex flex-col transition-all duration-300"
+        {/* Tab Controls */}
+        <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl w-fit relative z-10">
+          <button 
+            onClick={() => setActiveTab("interactive")}
+            className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === "interactive" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
           >
-            {activeNodeData ? (
-              <>
-                <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-6">
-                  {activeNodeData.icon}
-                </div>
-                <h2 className="text-2xl font-bold text-slate-900 mb-2">{activeNodeData.title}</h2>
-                <div className="inline-block px-3 py-1 bg-slate-100 text-slate-600 text-xs font-semibold rounded-full mb-6 w-fit">
-                  {activeNodeData.subtitle}
-                </div>
-                <p className="text-slate-600 leading-relaxed text-sm">
-                  {activeNodeData.details}
-                </p>
-              </>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full flex-grow text-center opacity-60">
-                <BrainCircuit className="w-16 h-16 text-slate-300 mb-4" />
-                <p className="text-slate-500 font-medium">Select a node in the architectural flow to view its deep-dive technical implementation details.</p>
-              </div>
-            )}
-          </div>
+            Interactive Flow
+          </button>
+          <button 
+            onClick={() => setActiveTab("mermaid")}
+            className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === "mermaid" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+          >
+            Mermaid Diagram
+          </button>
         </div>
       </div>
+
+      {activeTab === "interactive" && (
+        <div className="flex flex-col lg:flex-row gap-8 items-start animate-fade-in-up">
+          <div className="w-full lg:w-2/3 bg-slate-50 border border-slate-200 rounded-2xl p-8 md:p-12 relative shadow-inner">
+            <div className="flex flex-col gap-6 relative z-10">
+              {ARCHITECTURE_NODES.map((node, i) => (
+                <div key={node.id} className="relative flex items-center justify-center w-full">
+                  <div 
+                    onClick={() => handleNodeClick(node.id)}
+                    className={`arch-node relative z-10 flex items-center gap-4 p-5 rounded-xl border-2 transition-all duration-300 cursor-pointer w-full max-w-md shadow-sm ${
+                      activeNode === node.id 
+                        ? "bg-blue-50 border-blue-500 shadow-[0_0_20px_rgba(37,99,235,0.15)] scale-105" 
+                        : "bg-white border-slate-200 hover:border-blue-300 hover:bg-slate-50"
+                    }`}
+                  >
+                    <div className={`p-3 rounded-lg flex-shrink-0 transition-colors ${activeNode === node.id ? "bg-blue-600 text-white" : "bg-slate-100 text-blue-600"}`}>
+                      {node.icon}
+                    </div>
+                    <div>
+                      <h3 className={`font-bold transition-colors ${activeNode === node.id ? "text-blue-700" : "text-slate-800"}`}>
+                        {node.title}
+                      </h3>
+                      <p className="text-xs font-medium text-slate-500 mt-0.5">{node.subtitle}</p>
+                    </div>
+                  </div>
+
+                  {i < ARCHITECTURE_NODES.length - 1 && (
+                    <div className="absolute top-[100%] left-1/2 -translate-x-1/2 h-6 w-0.5 z-0 flex flex-col justify-end overflow-hidden">
+                      <div className="connector-line bg-slate-300 w-full h-full"></div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="w-full lg:w-1/3 sticky top-28">
+            <div 
+              id="details-panel"
+              className="bg-white border border-slate-200 rounded-2xl p-8 shadow-md min-h-[350px] flex flex-col transition-all duration-300"
+            >
+              {activeNodeData ? (
+                <>
+                  <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-6">
+                    {activeNodeData.icon}
+                  </div>
+                  <h2 className="text-2xl font-bold text-slate-900 mb-2">{activeNodeData.title}</h2>
+                  <div className="inline-block px-3 py-1 bg-slate-100 text-slate-600 text-xs font-semibold rounded-full mb-6 w-fit">
+                    {activeNodeData.subtitle}
+                  </div>
+                  <p className="text-slate-600 leading-relaxed text-sm">
+                    {activeNodeData.details}
+                  </p>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full flex-grow text-center opacity-60">
+                  <BrainCircuit className="w-16 h-16 text-slate-300 mb-4" />
+                  <p className="text-slate-500 font-medium">Select a node in the architectural flow to view its deep-dive technical implementation details.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "mermaid" && (
+        <div className="w-full bg-white border border-slate-200 rounded-2xl p-8 shadow-sm flex items-center justify-center min-h-[600px] animate-fade-in-up">
+          <div ref={mermaidRef} className="mermaid flex items-center justify-center w-full"></div>
+        </div>
+      )}
+
     </div>
   );
 }

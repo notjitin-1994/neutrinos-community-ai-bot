@@ -11,10 +11,27 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Neutrinos AI SLA Bot | Project Deliverables",
-  description: "Documentation and Deliverables for the Neutrinos Community AI SLA Bot",
+  metadataBase: new URL('https://neutrinosdeliverables.vercel.app'),
+  title: {
+    default: "Neutrinos AI SLA Bot | Project Deliverables",
+    template: "%s | Neutrinos AI SLA Bot"
+  },
+  description: "Documentation and Deliverables for the Neutrinos Community AI SLA Bot. Explore the RAG pipeline, Architecture, and Production scale plan.",
   icons: {
     icon: '/favicon.svg'
+  },
+  openGraph: {
+    title: "Neutrinos AI SLA Bot | Project Deliverables",
+    description: "Documentation and Deliverables for the Neutrinos Community AI SLA Bot.",
+    url: "https://neutrinosdeliverables.vercel.app",
+    siteName: "Neutrinos AI Deliverables",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Neutrinos AI SLA Bot | Project Deliverables",
+    description: "Documentation and Deliverables for the Neutrinos Community AI SLA Bot.",
   }
 };
 

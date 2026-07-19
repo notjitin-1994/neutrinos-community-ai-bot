@@ -21,7 +21,7 @@ export default function RagDesign() {
   }, []);
 
   return (
-    <div className="max-w-3xl mx-auto w-full pb-32 px-4 md:px-0 mt-8 md:mt-12" ref={containerRef}>
+    <div className="max-w-3xl mx-auto w-full flex flex-col" ref={containerRef}>
       
       <header className="stagger-block mb-24">
         <h1 className="text-[2.75rem] leading-[1.1] md:text-6xl font-black tracking-tight text-slate-900 mb-6 text-balance">

@@ -85,12 +85,9 @@ export default function LiveDemo() {
   ];
 
   return (
-    <div className="flex flex-col max-w-5xl mx-auto w-full pb-8 px-4 md:px-0 mt-8 md:mt-12" ref={containerRef}>
+    <div className="flex flex-col max-w-5xl mx-auto w-full" ref={containerRef}>
       
       {/* Video Theater Section */}
-      <Link href="/" className="gsap-fade text-sm text-blue-600 hover:text-blue-500 w-fit flex items-center gap-2 mb-6 transition-colors">
-        <span>←</span> Back to Dashboard
-      </Link>
 
       {/* Video Player */}
       <div className="gsap-fade w-full aspect-video bg-black rounded-xl overflow-hidden shadow-lg mb-6 ring-1 ring-slate-200">

@@ -86,12 +86,12 @@ export default function LiveDemo() {
   return (
     <div className="flex flex-col max-w-5xl mx-auto w-full pb-20" ref={containerRef}>
       {/* Navigation */}
-      <Link href="/" className="gsap-fade text-sm text-blue-400 hover:text-blue-300 w-fit flex items-center gap-2 mb-6 transition-colors">
+      <Link href="/" className="gsap-fade text-sm text-blue-600 hover:text-blue-500 w-fit flex items-center gap-2 mb-6 transition-colors">
         <span>←</span> Back to Dashboard
       </Link>
 
       {/* Video Player */}
-      <div className="gsap-fade w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl mb-6 ring-1 ring-white/10">
+      <div className="gsap-fade w-full aspect-video bg-black rounded-xl overflow-hidden shadow-lg mb-6 ring-1 ring-slate-200">
         <iframe 
           width="100%" 
           height="100%" 
@@ -107,10 +107,10 @@ export default function LiveDemo() {
       {/* Title & Actions Row */}
       <div className="gsap-fade flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-white mb-1">
+          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-slate-900 mb-1">
             End-to-End Execution: Neutrinos SLA Bot
           </h1>
-          <p className="text-white/50 text-sm">
+          <p className="text-slate-600 text-sm">
             Demonstrating real-time community support automation and RAG integrations.
           </p>
         </div>
@@ -119,7 +119,7 @@ export default function LiveDemo() {
           href="https://github.com/notjitin-1994/neutrinos-community-ai-bot" 
           target="_blank" 
           rel="noopener noreferrer"
-          className="shrink-0 px-5 py-2.5 bg-white text-black hover:bg-gray-200 rounded-full font-medium transition-all flex items-center gap-2 text-sm shadow-[0_0_20px_rgba(255,255,255,0.15)] hover:scale-105"
+          className="shrink-0 px-5 py-2.5 bg-slate-900 text-white hover:bg-slate-800 rounded-full font-medium transition-all flex items-center gap-2 text-sm shadow-sm hover:shadow-md hover:scale-105"
         >
           <Github className="w-4 h-4" />
           View Repository
@@ -127,10 +127,10 @@ export default function LiveDemo() {
       </div>
 
       {/* YouTube-style Expandable Description */}
-      <div className="gsap-fade bg-white/[0.04] hover:bg-white/[0.06] transition-colors border border-white/5 rounded-2xl p-6 cursor-pointer" onClick={() => setExpanded(!expanded)}>
-        <div className="flex items-center gap-2 text-white/80 font-medium mb-3">
+      <div className="gsap-fade bg-slate-100 hover:bg-slate-200 transition-colors border border-slate-200 rounded-2xl p-6 cursor-pointer" onClick={() => setExpanded(!expanded)}>
+        <div className="flex items-center gap-2 text-slate-800 font-semibold mb-3">
           <span className="text-sm">Architecture & Workflow Breakdown</span>
-          <span className="text-xs px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded-full">System Design</span>
+          <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">System Design</span>
         </div>
 
         <div 
@@ -138,20 +138,20 @@ export default function LiveDemo() {
           className="overflow-hidden"
           style={{ height: "80px" }} // Initial collapsed height
         >
-          <p className="text-white/60 text-sm leading-relaxed mb-6">
+          <p className="text-slate-700 text-sm leading-relaxed mb-6 font-medium">
             This live demonstration captures the Community AI SLA Bot operating in a simulated production environment. It monitors the Discourse platform for unanswered technical queries that have breached the service-level agreement threshold, and automatically intercepts them with highly accurate, context-aware engineering solutions.
           </p>
 
           <div className="flex flex-col gap-6 mt-8 pb-4">
-            <h3 className="text-white font-medium text-lg border-b border-white/10 pb-2 mb-2">Technical Execution Flow</h3>
+            <h3 className="text-slate-900 font-semibold text-lg border-b border-slate-300 pb-2 mb-2">Technical Execution Flow</h3>
             {steps.map((step, idx) => (
               <div key={idx} className="step-item flex gap-4 opacity-0 -translate-x-5">
-                <div className="mt-1 p-2 bg-white/5 rounded-lg border border-white/5 shrink-0 h-fit">
+                <div className="mt-1 p-2 bg-white rounded-lg border border-slate-200 shadow-sm shrink-0 h-fit">
                   {step.icon}
                 </div>
                 <div>
-                  <h4 className="text-white/90 font-medium mb-1 text-base">{step.title}</h4>
-                  <p className="text-white/50 text-sm leading-relaxed">{step.desc}</p>
+                  <h4 className="text-slate-900 font-semibold mb-1 text-base">{step.title}</h4>
+                  <p className="text-slate-600 text-sm leading-relaxed">{step.desc}</p>
                 </div>
               </div>
             ))}
@@ -159,7 +159,7 @@ export default function LiveDemo() {
         </div>
 
         {/* Toggle Button */}
-        <button className="mt-2 text-sm font-medium text-blue-400 flex items-center gap-1 hover:text-blue-300 transition-colors">
+        <button className="mt-2 text-sm font-semibold text-blue-600 flex items-center gap-1 hover:text-blue-700 transition-colors">
           {expanded ? "Show less" : "Show more"}
           {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>

@@ -43,10 +43,10 @@ export default function Home() {
   return (
     <div className="flex flex-col gap-12 w-full animate-fade-in-up opacity-0">
       <header className="flex flex-col gap-4 max-w-3xl">
-        <h1 className="text-5xl font-extrabold tracking-tight text-white">
-          Community AI SLA <span className="text-gradient">Bot</span>
+        <h1 className="text-5xl font-extrabold tracking-tight text-slate-900">
+          Community AI SLA <span className="text-accent">Bot</span>
         </h1>
-        <p className="text-xl text-white/60 leading-relaxed font-light">
+        <p className="text-xl text-slate-600 leading-relaxed font-light">
           Welcome to the project deliverables dashboard. This interface provides access to the complete documentation, design notes, and live demonstrations for the Neutrinos SLA integration.
         </p>
       </header>
@@ -58,14 +58,14 @@ export default function Home() {
             href={item.href}
             className={`glass-panel p-8 flex flex-col gap-4 hover-glow cursor-pointer group opacity-0 animate-fade-in-up stagger-${i + 1}`}
           >
-            <div className="text-blue-400 bg-white/5 w-16 h-16 rounded-xl flex items-center justify-center group-hover:scale-110 group-hover:bg-blue-500/10 group-hover:text-cyan-300 transition-all duration-300">
+            <div className="text-blue-600 bg-blue-50 w-16 h-16 rounded-xl flex items-center justify-center group-hover:scale-110 group-hover:bg-blue-100 group-hover:text-blue-700 transition-all duration-300">
               {item.icon}
             </div>
             <div>
-              <h2 className="text-xl font-bold mb-2 group-hover:text-blue-400 transition-colors">
+              <h2 className="text-xl font-bold mb-2 group-hover:text-blue-600 transition-colors text-slate-900">
                 {item.title}
               </h2>
-              <p className="text-sm text-white/50 leading-relaxed">
+              <p className="text-sm text-slate-500 leading-relaxed">
                 {item.description}
               </p>
             </div>

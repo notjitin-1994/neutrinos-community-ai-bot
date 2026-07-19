@@ -98,6 +98,19 @@ export default function SLADefinitions() {
               <ul className="mt-6 space-y-3">
                 <li><strong className="text-slate-900 font-semibold tracking-tight">The Follow-Up Trap:</strong> A common edge-case occurs when a human answers a thread, but the Original Poster (OP) replies asking a follow-up question. By strictly checking if <code>last_author == original_poster</code>, our engine correctly identifies these seemingly &quot;answered&quot; threads as actually requiring renewed intervention.</li>
               </ul>
+
+              {/* Free Tier Limitation Callout */}
+              <div className="mt-8 p-5 bg-amber-50 border border-amber-200 rounded-xl">
+                <div className="flex gap-3">
+                  <ShieldAlert className="w-6 h-6 text-amber-600 shrink-0 mt-0.5" />
+                  <div>
+                    <h3 className="font-semibold text-amber-900 text-lg mb-1 mt-0">Trial Tier API Limitation: The &quot;Solved&quot; Plugin</h3>
+                    <p className="text-amber-800/90 text-base mb-0">
+                      While the codebase contains the native integration to mark threads as solved via the Discourse API (<code>accepted_answer_post_id</code>), we are unable to formally execute this state change in the current live environment. The <strong>Discourse Free/Trial tier does not support enabling the Solved plugin</strong>, rendering the endpoint inert. Our <code>is_resolved</code> logic natively compensates for this by falling back to our strict chronological and author-based heuristic evaluations.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
 

@@ -9,6 +9,8 @@ import {
 import gsap from "gsap";
 import { useEffect, useRef, useState } from "react";
 
+import Navigation from "@/components/Navigation";
+
 export default function ProductionPlan() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState<"continuous" | "measurement" | "risk">("continuous");
@@ -35,10 +37,8 @@ export default function ProductionPlan() {
   }, [activeTab]);
 
   return (
-    <div className="max-w-4xl mx-auto w-full pb-32" ref={containerRef}>
-      <Link href="/" className="stagger-block text-sm text-blue-600 hover:text-blue-700 w-fit flex items-center gap-2 mb-16 transition-colors font-semibold tracking-wide uppercase">
-        <span>←</span> Back to Dashboard
-      </Link>
+    <div className="max-w-4xl mx-auto w-full pb-32 px-4 md:px-0" ref={containerRef}>
+      <Navigation />
       
       <header className="stagger-block mb-16">
         <h1 className="text-[3rem] leading-[1.1] md:text-7xl font-black tracking-tight text-slate-900 mb-6 text-balance">
@@ -50,25 +50,27 @@ export default function ProductionPlan() {
       </header>
 
       {/* Tab Navigation */}
-      <div className="stagger-block flex flex-wrap items-center gap-2 bg-slate-100 p-1.5 rounded-xl w-fit mb-12 shadow-inner">
-        <button 
-          onClick={() => setActiveTab("continuous")}
-          className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === "continuous" ? "bg-white text-blue-700 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
-        >
-          1. Continuous Execution
-        </button>
-        <button 
-          onClick={() => setActiveTab("measurement")}
-          className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === "measurement" ? "bg-white text-blue-700 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
-        >
-          2. Success Measurement
-        </button>
-        <button 
-          onClick={() => setActiveTab("risk")}
-          className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === "risk" ? "bg-white text-blue-700 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
-        >
-          3. Human Engagement Risk
-        </button>
+      <div className="stagger-block w-full overflow-x-auto hide-scrollbar mb-12 -mx-4 px-4 md:mx-0 md:px-0">
+        <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl w-fit min-w-max shadow-inner">
+          <button 
+            onClick={() => setActiveTab("continuous")}
+            className={`px-4 md:px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === "continuous" ? "bg-white text-blue-700 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+          >
+            1. Continuous Execution
+          </button>
+          <button 
+            onClick={() => setActiveTab("measurement")}
+            className={`px-4 md:px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === "measurement" ? "bg-white text-blue-700 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+          >
+            2. Success Measurement
+          </button>
+          <button 
+            onClick={() => setActiveTab("risk")}
+            className={`px-4 md:px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === "risk" ? "bg-white text-blue-700 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+          >
+            3. Human Engagement Risk
+          </button>
+        </div>
       </div>
 
       <div className="relative min-h-[500px]">

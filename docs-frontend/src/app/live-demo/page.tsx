@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Navigation from "@/components/Navigation";
 import { useState, useRef, useEffect } from "react";
 import gsap from "gsap";
 import { ChevronDown, ChevronUp, Activity, Database, Search, ShieldCheck, CheckCircle } from "lucide-react";

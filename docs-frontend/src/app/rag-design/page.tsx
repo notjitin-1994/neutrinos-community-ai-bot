@@ -5,6 +5,8 @@ import { Database, Search, Cpu, ShieldAlert } from "lucide-react";
 import gsap from "gsap";
 import { useEffect, useRef } from "react";
 
+import Navigation from "@/components/Navigation";
+
 export default function RagDesign() {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -19,10 +21,8 @@ export default function RagDesign() {
   }, []);
 
   return (
-    <div className="max-w-3xl mx-auto w-full pb-32" ref={containerRef}>
-      <Link href="/" className="stagger-block text-sm text-blue-600 hover:text-blue-700 w-fit flex items-center gap-2 mb-16 transition-colors font-semibold tracking-wide uppercase">
-        <span>←</span> Back to Dashboard
-      </Link>
+    <div className="max-w-3xl mx-auto w-full pb-32 px-4 md:px-0" ref={containerRef}>
+      <Navigation />
       
       <header className="stagger-block mb-24">
         <h1 className="text-[2.75rem] leading-[1.1] md:text-6xl font-black tracking-tight text-slate-900 mb-6 text-balance">

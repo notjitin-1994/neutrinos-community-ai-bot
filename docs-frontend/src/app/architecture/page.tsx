@@ -120,6 +120,8 @@ graph TD
     Ingest -. "Upsert Embeddings" .-> Chroma
 `;
 
+import Navigation from "@/components/Navigation";
+
 export default function Architecture() {
   const containerRef = useRef<HTMLDivElement>(null);
   const mermaidRef = useRef<HTMLDivElement>(null);
@@ -188,10 +190,8 @@ export default function Architecture() {
   const activeNodeData = ARCHITECTURE_NODES.find(n => n.id === activeNode);
 
   return (
-    <div className="flex flex-col gap-8 w-full pb-12" ref={containerRef}>
-      <Link href="/" className="page-header text-sm text-blue-600 hover:text-blue-500 w-fit flex items-center gap-2 transition-colors">
-        <span>←</span> Back to Dashboard
-      </Link>
+    <div className="flex flex-col gap-8 w-full pb-12 px-4 md:px-0" ref={containerRef}>
+      <Navigation />
       
       <div className="page-header bg-white border border-slate-200 rounded-2xl p-8 md:p-12 shadow-sm mb-4 relative overflow-hidden">
         <div className="absolute top-0 right-0 p-16 opacity-5 pointer-events-none">
@@ -222,15 +222,15 @@ export default function Architecture() {
 
       {activeTab === "interactive" && (
         <div className="flex flex-col lg:flex-row gap-8 items-start animate-fade-in-up">
-          <div className="w-full lg:w-2/3 bg-slate-50 border border-slate-200 rounded-2xl p-8 md:p-12 relative shadow-inner">
-            <div className="flex flex-col gap-6 relative z-10">
+          <div className="w-full lg:w-2/3 bg-slate-50 border border-slate-200 rounded-2xl p-4 md:p-12 relative shadow-inner">
+            <div className="flex flex-col gap-4 md:gap-6 relative z-10">
               {ARCHITECTURE_NODES.map((node, i) => (
-                <div key={node.id} className="relative flex items-center justify-center w-full">
+                <div key={node.id} className="relative flex flex-col items-center justify-center w-full">
                   <div 
                     onClick={() => handleNodeClick(node.id)}
-                    className={`arch-node relative z-10 flex items-center gap-4 p-5 rounded-xl border-2 transition-all duration-300 cursor-pointer w-full max-w-md shadow-sm ${
+                    className={`arch-node relative z-10 flex items-center gap-4 p-4 md:p-5 rounded-xl border-2 transition-all duration-300 cursor-pointer w-full max-w-md shadow-sm ${
                       activeNode === node.id 
-                        ? "bg-blue-50 border-blue-500 shadow-[0_0_20px_rgba(37,99,235,0.15)] scale-105" 
+                        ? "bg-blue-50 border-blue-500 shadow-[0_0_20px_rgba(37,99,235,0.15)] md:scale-105" 
                         : "bg-white border-slate-200 hover:border-blue-300 hover:bg-slate-50"
                     }`}
                   >
@@ -238,15 +238,27 @@ export default function Architecture() {
                       {node.icon}
                     </div>
                     <div>
-                      <h3 className={`font-bold transition-colors ${activeNode === node.id ? "text-blue-700" : "text-slate-800"}`}>
+                      <h3 className={`font-bold transition-colors text-sm md:text-base ${activeNode === node.id ? "text-blue-700" : "text-slate-800"}`}>
                         {node.title}
                       </h3>
                       <p className="text-xs font-medium text-slate-500 mt-0.5">{node.subtitle}</p>
                     </div>
                   </div>
 
+                  {/* Inline Mobile Details Panel */}
+                  {activeNode === node.id && (
+                    <div className="w-full max-w-md mt-4 mb-2 lg:hidden bg-white border border-blue-200 rounded-xl p-5 shadow-md animate-in fade-in slide-in-from-top-4 duration-300">
+                      <div className="inline-block px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-full mb-3 w-fit">
+                        {node.subtitle}
+                      </div>
+                      <p className="text-slate-600 leading-relaxed text-sm m-0">
+                        {node.details}
+                      </p>
+                    </div>
+                  )}
+
                   {i < ARCHITECTURE_NODES.length - 1 && (
-                    <div className="absolute top-[100%] left-1/2 -translate-x-1/2 h-6 w-0.5 z-0 flex flex-col justify-end overflow-hidden">
+                    <div className={`absolute left-1/2 -translate-x-1/2 h-6 w-0.5 z-0 flex flex-col justify-end overflow-hidden ${activeNode === node.id ? 'top-[100%] mt-[150px] lg:mt-0' : 'top-[100%]'}`}>
                       <div className="connector-line bg-slate-300 w-full h-full"></div>
                     </div>
                   )}
@@ -255,7 +267,7 @@ export default function Architecture() {
             </div>
           </div>
 
-          <div className="w-full lg:w-1/3 sticky top-28">
+          <div className="hidden lg:block w-full lg:w-1/3 sticky top-28">
             <div 
               id="details-panel"
               className="bg-white border border-slate-200 rounded-2xl p-8 shadow-md min-h-[350px] flex flex-col transition-all duration-300"

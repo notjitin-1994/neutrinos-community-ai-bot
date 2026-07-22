@@ -102,6 +102,6 @@ export async function POST(req: Request) {
     if (error?.status === 429) {
       return NextResponse.json({ status: "rate_limit", message: "Queueing request..." }, { status: 429 });
     }
-    return NextResponse.json({ status: "error", message: "Server error" }, { status: 500 });
+    return NextResponse.json({ status: "error", message: `Server error: ${error.message || error}` }, { status: 500 });
   }
 }

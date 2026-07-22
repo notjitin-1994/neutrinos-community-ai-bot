@@ -12,3 +12,4 @@ state.db-wal
 .vscode/
 .idea/
 .DS_Store
+.vercel

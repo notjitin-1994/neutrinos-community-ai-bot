@@ -20,6 +20,7 @@ export default function GraphChat() {
   const [messages, setMessages] = useState<{ role: string; content: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingText, setLoadingText] = useState(LOADING_PHRASES[0]);
+  const [fullscreenDiagram, setFullscreenDiagram] = useState<string | null>(null);
   
   const chatRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -37,6 +38,18 @@ export default function GraphChat() {
       }
     })();
   }, []);
+
+  // Re-run mermaid on fullscreen open
+  useEffect(() => {
+    if (fullscreenDiagram) {
+      setTimeout(async () => {
+        try {
+          const mermaid = (await import("mermaid")).default;
+          mermaid.contentLoaded();
+        } catch (e) {}
+      }, 50);
+    }
+  }, [fullscreenDiagram]);
 
   // Loading randomizer
   useEffect(() => {
@@ -146,7 +159,8 @@ export default function GraphChat() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-none">
+    <>
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-none">
       {isOpen ? (
         <div
           ref={chatRef}
@@ -209,9 +223,22 @@ export default function GraphChat() {
                       const match = /language-(\w+)/.exec(className || "");
                       const isInline = !match && !String(children).includes("\n");
                       if (!isInline && match && match[1] === "mermaid") {
+                        const diagramText = String(children).replace(/\n$/, "");
                         return (
-                          <div className="mermaid bg-slate-50 p-4 rounded-xl border border-slate-200 text-[12px] overflow-x-auto my-3 text-slate-800">
-                            {String(children).replace(/\n$/, "")}
+                          <div className="relative group my-3">
+                            <div className="mermaid bg-slate-50 p-4 rounded-xl border border-slate-200 text-[12px] overflow-x-auto text-slate-800">
+                              {diagramText}
+                            </div>
+                            <button
+                              onClick={() => setFullscreenDiagram(diagramText)}
+                              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-slate-200 text-slate-600 hover:text-blue-600 shadow-sm px-2 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-medium"
+                              aria-label="Expand diagram"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                              </svg>
+                              Expand
+                            </button>
                           </div>
                         );
                       }
@@ -284,6 +311,24 @@ export default function GraphChat() {
           />
         </button>
       )}
-    </div>
+      </div>
+
+      {/* Fullscreen Diagram Modal */}
+      {fullscreenDiagram && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/95 backdrop-blur-md p-4 sm:p-8 animate-in fade-in duration-200">
+          <button 
+            onClick={() => setFullscreenDiagram(null)}
+            className="absolute top-6 right-6 p-3 text-slate-500 hover:text-slate-900 bg-white border border-slate-200 rounded-full shadow-sm hover:bg-slate-50 transition-colors"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+          <div className="w-full max-w-6xl max-h-[90vh] bg-white border border-slate-200 shadow-2xl rounded-3xl overflow-auto p-8 flex items-center justify-center">
+             <div className="mermaid text-base scale-110 origin-center">
+               {fullscreenDiagram}
+             </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

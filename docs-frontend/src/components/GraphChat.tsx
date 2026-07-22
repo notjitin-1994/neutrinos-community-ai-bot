@@ -59,7 +59,7 @@ export default function GraphChat() {
           attempts++;
           if (attempts > 5) throw new Error("Rate limit exceeded permanently.");
           setMessages((prev) => [
-            ...prev.filter((m) => !m.content.includes("Queueing")),
+            ...prev.filter((m) => !m.content.startsWith("Rate limit hit. Queueing request...")),
             {
               role: "assistant",
               content: `Rate limit hit. Queueing request... (Attempt ${attempts}/5)`,
@@ -73,7 +73,7 @@ export default function GraphChat() {
         const data = await res.json();
         const responseText = data.error || data.message || "No response received from server.";
         setMessages((prev) => [
-          ...prev.filter((m) => !m.content.includes("Queueing")),
+          ...prev.filter((m) => !m.content.startsWith("Rate limit hit. Queueing request...")),
           { role: "assistant", content: responseText },
         ]);
 
@@ -84,10 +84,10 @@ export default function GraphChat() {
             console.error("Mermaid render error:", err);
           }
         }, 150);
-      } catch (e) {
+      } catch (e: any) {
         setMessages((prev) => [
-          ...prev.filter((m) => !m.content.includes("Queueing")),
-          { role: "assistant", content: "Error communicating with server." },
+          ...prev.filter((m) => !m.content.startsWith("Rate limit hit. Queueing request...")),
+          { role: "assistant", content: e?.message || "Error communicating with server." },
         ]);
       } finally {
         setLoading(false);

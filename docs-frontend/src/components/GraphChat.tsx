@@ -205,8 +205,8 @@ export default function GraphChat() {
                 <img src="/favicon.svg" alt="Jitin's AI Assistant" className="w-8 h-8 object-contain drop-shadow-sm" />
               </div>
               <div>
-                <h3 className="text-[15px] font-semibold text-slate-900 tracking-tight leading-tight">Jitin's Digital Twin</h3>
-                <p className="text-[11px] font-medium text-slate-500 tracking-wide mt-0.5">Sentient guide to this codebase architecture</p>
+                <h3 className="text-[15px] font-semibold text-slate-900 tracking-tight leading-tight">Project Oracle</h3>
+                <p className="text-[11px] font-medium text-slate-500 tracking-wide mt-0.5">An interactive architecture demo by Jitin</p>
               </div>
             </div>
             <div className="flex items-center gap-1">
@@ -242,9 +242,9 @@ export default function GraphChat() {
                   <img src="/favicon.svg" alt="Jitin's Demo" className="w-8 h-8 opacity-80" />
                 </div>
                 <div>
-                  <p className="text-slate-800 font-semibold text-[15px] tracking-tight">Deconstruct the Demo</p>
+                  <p className="text-slate-800 font-semibold text-[15px] tracking-tight">Welcome to Project Oracle</p>
                   <p className="text-[13px] text-slate-500 mt-2 max-w-[240px] mx-auto leading-relaxed">
-                    I'm Jitin's AI proxy, engineered to explain how this works. Ask me to map out the RAG pipeline, dissect the AST engine, or explain the production scaling.
+                    An AI agent built by Jitin to explain this codebase. Ask me to map out the RAG pipeline, dissect the AST engine, or explain the production scaling.
                   </p>
                 </div>
               </div>
@@ -325,7 +325,7 @@ export default function GraphChat() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                placeholder="Ask Jitin's Twin..."
+                placeholder="Message Project Oracle..."
               />
               <button
                 onClick={sendMessage}
@@ -348,7 +348,7 @@ export default function GraphChat() {
         >
           <img 
             src="/favicon.svg" 
-            alt="Jitin's Digital Twin" 
+            alt="Project Oracle" 
             className="w-7 h-7 object-contain drop-shadow-md brightness-0 invert group-hover:rotate-12 transition-transform duration-300" 
           />
         </button>

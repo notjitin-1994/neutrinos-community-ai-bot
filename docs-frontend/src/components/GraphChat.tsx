@@ -170,15 +170,11 @@ export default function GraphChat() {
           <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-white/50">
             <div className="flex items-center gap-3.5">
               <div className="relative">
-                <img src="/favicon.svg" alt="Neutrinos AI" className="w-8 h-8 object-contain drop-shadow-sm" />
-                <div className="absolute -bottom-0.5 -right-0.5 relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 border-2 border-white"></span>
-                </div>
+                <img src="/favicon.svg" alt="Jitin's AI Assistant" className="w-8 h-8 object-contain drop-shadow-sm" />
               </div>
               <div>
-                <h3 className="text-[15px] font-semibold text-slate-900 tracking-tight leading-tight">Neutrinos AI</h3>
-                <p className="text-[11px] font-medium text-slate-500 tracking-wide mt-0.5">Architecture & Codebase Assistant</p>
+                <h3 className="text-[15px] font-semibold text-slate-900 tracking-tight leading-tight">Jitin's AI Assistant</h3>
+                <p className="text-[11px] font-medium text-slate-500 tracking-wide mt-0.5">Architect & Creator of this Demo</p>
               </div>
             </div>
             <button
@@ -197,12 +193,12 @@ export default function GraphChat() {
             {messages.length === 0 && (
               <div className="my-auto text-center flex flex-col items-center gap-4 animate-in fade-in duration-1000">
                 <div className="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center shadow-inner mb-1">
-                  <img src="/favicon.svg" alt="Neutrinos Logo" className="w-8 h-8 opacity-80" />
+                  <img src="/favicon.svg" alt="Jitin's Demo" className="w-8 h-8 opacity-80" />
                 </div>
                 <div>
-                  <p className="text-slate-800 font-semibold text-[15px] tracking-tight">How can I help you?</p>
+                  <p className="text-slate-800 font-semibold text-[15px] tracking-tight">Jitin's Interactive Demo</p>
                   <p className="text-[13px] text-slate-500 mt-2 max-w-[240px] mx-auto leading-relaxed">
-                    Ask me anything about the codebase architecture, AST graph, or API routes.
+                    Ask me how I built this AI SLA bot, the RAG architecture, or the inner workings of the codebase.
                   </p>
                 </div>
               </div>
@@ -283,7 +279,7 @@ export default function GraphChat() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                placeholder="Message Neutrinos AI..."
+                placeholder="Message Jitin's AI Assistant..."
               />
               <button
                 onClick={sendMessage}
@@ -306,7 +302,7 @@ export default function GraphChat() {
         >
           <img 
             src="/favicon.svg" 
-            alt="Neutrinos AI" 
+            alt="Jitin's AI Assistant" 
             className="w-7 h-7 object-contain drop-shadow-md brightness-0 invert group-hover:rotate-12 transition-transform duration-300" 
           />
         </button>

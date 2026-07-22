@@ -12,7 +12,7 @@ const DELIVERABLES = [
   {
     id: "architecture",
     title: "Architectural Diagram",
-    description: "High-level system architecture outlining FastApi, LangChain, NVIDIA NIMs, and ChromaDB integrations.",
+    description: "High-level system architecture outlining the Python Watch Loop, SQLite StateStore, NVIDIA NIMs, and ChromaDB integrations.",
     href: "/architecture",
     icon: <Layers className="w-8 h-8" />,
   },

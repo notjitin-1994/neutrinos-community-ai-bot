@@ -11,8 +11,8 @@ const ARCHITECTURE_NODES = [
     id: "entry",
     icon: <Server className="w-6 h-6" />,
     title: "1. Orchestration & Entry",
-    subtitle: "FastAPI & CLI Loop",
-    details: "The system is driven by a FastAPI server for webhook triggers and a continuous CLI watch loop (main.py). It orchestrates the asynchronous execution of the entire pipeline while managing rate limits."
+    subtitle: "Async CLI Watch Loop",
+    details: "The system is driven by a continuous asynchronous CLI watch loop (main.py). It orchestrates the execution of the entire pipeline while gracefully polling Discourse for updates."
   },
   {
     id: "sla",
@@ -68,7 +68,6 @@ graph TD
     %% Entry points
     subgraph trigger[Trigger Layer]
         CLI["CLI Watch Loop<br/>(main.py)"]:::highlight
-        Webhook["FastAPI /webhook<br/>(main.py)"]:::highlight
     end
 
     %% Engine
@@ -96,7 +95,6 @@ graph TD
 
     %% Flows
     CLI --> SLA
-    Webhook --> SLA
     SLA <--> DiscourseAPI
     SLA <--> State
     

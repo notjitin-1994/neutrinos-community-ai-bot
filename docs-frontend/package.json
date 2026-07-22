@@ -1,12 +1,13 @@
 {
-  "name": "docs-frontend",
+  "name": "neutrinosdeliverables",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "graphify": "python3 ../scripts/graphify.py"
   },
   "dependencies": {
     "gsap": "^3.15.0",

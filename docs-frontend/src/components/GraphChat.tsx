@@ -68,54 +68,58 @@ export default function GraphChat() {
   useEffect(() => {
     if (!containerRef.current || !contentRef.current || !fabRef.current) return;
 
-    if (isOpen) {
-      // Expand
-      gsap.to(containerRef.current, {
-        width: window.innerWidth < 640 ? window.innerWidth - 32 : 420,
-        height: 600,
-        borderRadius: 24,
-        duration: 0.6,
-        ease: "expo.out",
-      });
-      gsap.to(fabRef.current, {
-        opacity: 0,
-        scale: 0.8,
-        duration: 0.3,
-        pointerEvents: "none"
-      });
-      gsap.to(contentRef.current, {
-        opacity: 1,
-        y: 0,
-        duration: 0.5,
-        delay: 0.2,
-        ease: "power3.out",
-        pointerEvents: "auto"
-      });
-    } else {
-      // Collapse
-      gsap.to(contentRef.current, {
-        opacity: 0,
-        y: 10,
-        duration: 0.2,
-        ease: "power2.in",
-        pointerEvents: "none"
-      });
-      gsap.to(containerRef.current, {
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        duration: 0.5,
-        delay: 0.1,
-        ease: "expo.out",
-      });
-      gsap.to(fabRef.current, {
-        opacity: 1,
-        scale: 1,
-        duration: 0.3,
-        delay: 0.3,
-        pointerEvents: "auto"
-      });
-    }
+    let ctx = gsap.context(() => {
+      if (isOpen) {
+        // Expand
+        gsap.to(containerRef.current, {
+          width: window.innerWidth < 640 ? window.innerWidth - 32 : 420,
+          height: 600,
+          borderRadius: 24,
+          duration: 0.6,
+          ease: "expo.out",
+        });
+        gsap.to(fabRef.current, {
+          opacity: 0,
+          scale: 0.8,
+          duration: 0.3,
+          pointerEvents: "none"
+        });
+        gsap.to(contentRef.current, {
+          opacity: 1,
+          y: 0,
+          duration: 0.5,
+          delay: 0.2,
+          ease: "power3.out",
+          pointerEvents: "auto"
+        });
+      } else {
+        // Collapse
+        gsap.to(contentRef.current, {
+          opacity: 0,
+          y: 10,
+          duration: 0.2,
+          ease: "power2.in",
+          pointerEvents: "none"
+        });
+        gsap.to(containerRef.current, {
+          width: 56,
+          height: 56,
+          borderRadius: 28,
+          duration: 0.5,
+          delay: 0.1,
+          ease: "expo.out",
+        });
+        gsap.to(fabRef.current, {
+          opacity: 1,
+          scale: 1,
+          duration: 0.3,
+          delay: 0.3,
+          pointerEvents: "auto"
+        });
+      }
+    });
+
+    return () => ctx.revert();
   }, [isOpen]);
 
   // Message enter animation

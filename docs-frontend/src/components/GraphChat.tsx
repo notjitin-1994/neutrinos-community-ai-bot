@@ -51,9 +51,10 @@ export default function GraphChat() {
         body: JSON.stringify({ message: userMessage }),
       });
       const data = await res.json();
+      const responseText = data.error || data.message || "No response received from server.";
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: data.message || "No response received from server." },
+        { role: "assistant", content: responseText },
       ]);
 
       setTimeout(() => {
@@ -128,16 +129,17 @@ export default function GraphChat() {
               >
                 <ReactMarkdown
                   components={{
-                    code({ node, inline, className, children, ...props }: any) {
+                    code({ node, className, children, ...props }: any) {
                       const match = /language-(\w+)/.exec(className || "");
-                      if (!inline && match && match[1] === "mermaid") {
+                      const isInline = !match && !String(children).includes("\n");
+                      if (!isInline && match && match[1] === "mermaid") {
                         return (
                           <div className="mermaid bg-slate-950 p-3 rounded-lg border border-slate-800 text-xs overflow-x-auto my-2 text-slate-200">
                             {String(children).replace(/\n$/, "")}
                           </div>
                         );
                       }
-                      return inline ? (
+                      return isInline ? (
                         <code
                           className="bg-slate-950/60 border border-slate-700/50 px-1.5 py-0.5 rounded text-xs text-blue-300 font-mono"
                           {...props}

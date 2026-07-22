@@ -4,6 +4,7 @@ import "./globals.css";
 import Link from "next/link";
 import Image from "next/image";
 import Navigation from "@/components/Navigation";
+import GraphChat from "@/components/GraphChat";
 
 const poppins = Poppins({ 
   weight: ['300', '400', '500', '600', '700'],
@@ -61,6 +62,8 @@ export default function RootLayout({
         <main className="flex-grow py-4 md:py-5 lg:py-10 px-8 md:px-12 lg:px-24 max-w-7xl mx-auto w-full">
           {children}
         </main>
+
+        <GraphChat />
       </body>
     </html>
   );

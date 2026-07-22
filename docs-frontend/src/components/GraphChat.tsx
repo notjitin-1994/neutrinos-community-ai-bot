@@ -42,37 +42,61 @@ export default function GraphChat() {
 
     setMessages((prev) => [...prev, newMsg]);
     setInput("");
-    setLoading(true);
 
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMessage }),
-      });
-      const data = await res.json();
-      const responseText = data.error || data.message || "No response received from server.";
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: responseText },
-      ]);
+    let attempts = 0;
+    let delay = 2000;
 
-      setTimeout(() => {
-        try {
-          mermaid.contentLoaded();
-        } catch (err) {
-          console.error("Mermaid render error:", err);
+    const attemptFetch = async (): Promise<void> => {
+      setLoading(true);
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: userMessage }),
+        });
+
+        if (res.status === 429) {
+          attempts++;
+          if (attempts > 5) throw new Error("Rate limit exceeded permanently.");
+          setMessages((prev) => [
+            ...prev.filter((m) => !m.content.includes("Queueing")),
+            {
+              role: "assistant",
+              content: `Rate limit hit. Queueing request... (Attempt ${attempts}/5)`,
+            },
+          ]);
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          delay *= 2; // Exponential backoff
+          return attemptFetch();
         }
-      }, 150);
-    } catch (e) {
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: "Error communicating with server." },
-      ]);
-    } finally {
-      setLoading(false);
-    }
+
+        const data = await res.json();
+        const responseText = data.error || data.message || "No response received from server.";
+        setMessages((prev) => [
+          ...prev.filter((m) => !m.content.includes("Queueing")),
+          { role: "assistant", content: responseText },
+        ]);
+
+        setTimeout(() => {
+          try {
+            mermaid.contentLoaded();
+          } catch (err) {
+            console.error("Mermaid render error:", err);
+          }
+        }, 150);
+      } catch (e) {
+        setMessages((prev) => [
+          ...prev.filter((m) => !m.content.includes("Queueing")),
+          { role: "assistant", content: "Error communicating with server." },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    await attemptFetch();
   };
+
 
   return (
     <div className="fixed bottom-6 right-6 z-50 font-sans">

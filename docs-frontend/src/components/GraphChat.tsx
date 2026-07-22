@@ -3,7 +3,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import gsap from "gsap";
 import ReactMarkdown from "react-markdown";
-import mermaid from "mermaid";
 
 const LOADING_PHRASES = [
   "Analyzing codebase...",
@@ -57,11 +56,14 @@ export default function GraphChat() {
   }, [loading]);
 
   useEffect(() => {
-    try {
-      mermaid.initialize({ startOnLoad: true, theme: "dark" });
-    } catch (e) {
-      console.error("Mermaid initialization error:", e);
-    }
+    (async () => {
+      try {
+        const mermaid = (await import("mermaid")).default;
+        mermaid.initialize({ startOnLoad: true, theme: "dark" });
+      } catch (e) {
+        console.error("Mermaid initialization error:", e);
+      }
+    })();
   }, []);
 
   // Removed GSAP container morphing useEffect to prevent layout race conditions
@@ -127,8 +129,9 @@ export default function GraphChat() {
           { role: "assistant", content: responseText },
         ]);
 
-        setTimeout(() => {
+        setTimeout(async () => {
           try {
+            const mermaid = (await import("mermaid")).default;
             mermaid.contentLoaded();
           } catch (err) {}
         }, 150);
@@ -146,7 +149,7 @@ export default function GraphChat() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 font-sans" style={{ perspective: 1000 }}>
+    <div className="fixed bottom-6 right-6 z-50 font-sans">
       {/* Morphing Container */}
       <div 
         ref={containerRef}
@@ -157,7 +160,7 @@ export default function GraphChat() {
         {/* Expanded Content */}
         <div 
           ref={contentRef} 
-          className={`absolute inset-0 flex flex-col w-full h-full transition-all duration-500 ${
+          className={`absolute inset-0 z-10 flex flex-col w-full h-full transition-all duration-500 ${
             isOpen ? 'opacity-100 translate-y-0 pointer-events-auto delay-100' : 'opacity-0 translate-y-4 pointer-events-none'
           }`}
         >
@@ -280,7 +283,7 @@ export default function GraphChat() {
         <button
           ref={fabRef}
           onClick={() => setIsOpen(true)}
-          className={`absolute inset-0 w-full h-full flex items-center justify-center text-white bg-gradient-to-tr from-blue-600 to-indigo-500 hover:from-blue-500 hover:to-indigo-400 transition-all duration-300 ease-out ${
+          className={`absolute inset-0 z-20 w-full h-full flex items-center justify-center text-white bg-gradient-to-tr from-blue-600 to-indigo-500 hover:from-blue-500 hover:to-indigo-400 transition-all duration-300 ease-out ${
             isOpen ? 'opacity-0 scale-75 pointer-events-none' : 'opacity-100 scale-100 pointer-events-auto'
           }`}
           aria-label="Open chat"

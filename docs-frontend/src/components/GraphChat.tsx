@@ -64,69 +64,13 @@ export default function GraphChat() {
     }
   }, []);
 
-  // Morphing animation
-  useEffect(() => {
-    if (!containerRef.current || !contentRef.current || !fabRef.current) return;
-
-    let ctx = gsap.context(() => {
-      if (isOpen) {
-        // Expand
-        gsap.to(containerRef.current, {
-          width: window.innerWidth < 640 ? window.innerWidth - 32 : 420,
-          height: 600,
-          borderRadius: 24,
-          duration: 0.6,
-          ease: "expo.out",
-        });
-        gsap.to(fabRef.current, {
-          opacity: 0,
-          scale: 0.8,
-          duration: 0.3,
-          pointerEvents: "none"
-        });
-        gsap.to(contentRef.current, {
-          opacity: 1,
-          y: 0,
-          duration: 0.5,
-          delay: 0.2,
-          ease: "power3.out",
-          pointerEvents: "auto"
-        });
-      } else {
-        // Collapse
-        gsap.to(contentRef.current, {
-          opacity: 0,
-          y: 10,
-          duration: 0.2,
-          ease: "power2.in",
-          pointerEvents: "none"
-        });
-        gsap.to(containerRef.current, {
-          width: 56,
-          height: 56,
-          borderRadius: 28,
-          duration: 0.5,
-          delay: 0.1,
-          ease: "expo.out",
-        });
-        gsap.to(fabRef.current, {
-          opacity: 1,
-          scale: 1,
-          duration: 0.3,
-          delay: 0.3,
-          pointerEvents: "auto"
-        });
-      }
-    });
-
-    return () => ctx.revert();
-  }, [isOpen]);
+  // Removed GSAP container morphing useEffect to prevent layout race conditions
 
   // Message enter animation
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     
-    // Animate the last message in
+    // Animate the last message in using GSAP
     const msgElements = document.querySelectorAll('.message-bubble');
     if (msgElements.length > 0) {
       const lastMsg = msgElements[msgElements.length - 1];
@@ -206,13 +150,16 @@ export default function GraphChat() {
       {/* Morphing Container */}
       <div 
         ref={containerRef}
-        className="relative bg-[#0a0a0c]/80 backdrop-blur-3xl border border-white/[0.08] shadow-[0_16px_64px_-16px_rgba(0,0,0,0.8)] overflow-hidden flex items-end justify-end"
-        style={{ width: 56, height: 56, borderRadius: 28 }}
+        className={`relative bg-[#0a0a0c]/80 backdrop-blur-3xl border border-white/[0.08] shadow-[0_16px_64px_-16px_rgba(0,0,0,0.8)] overflow-hidden flex items-end justify-end transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          isOpen ? 'w-[calc(100vw-48px)] sm:w-[420px] h-[600px] rounded-3xl' : 'w-14 h-14 rounded-full'
+        }`}
       >
         {/* Expanded Content */}
         <div 
           ref={contentRef} 
-          className="absolute inset-0 flex flex-col w-full h-full opacity-0 pointer-events-none"
+          className={`absolute inset-0 flex flex-col w-full h-full transition-all duration-500 ${
+            isOpen ? 'opacity-100 translate-y-0 pointer-events-auto delay-100' : 'opacity-0 translate-y-4 pointer-events-none'
+          }`}
         >
           {/* Header */}
           <div className="px-5 py-4 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
@@ -333,7 +280,9 @@ export default function GraphChat() {
         <button
           ref={fabRef}
           onClick={() => setIsOpen(true)}
-          className="absolute inset-0 w-full h-full flex items-center justify-center text-white bg-gradient-to-tr from-blue-600 to-indigo-500 hover:from-blue-500 hover:to-indigo-400 transition-colors"
+          className={`absolute inset-0 w-full h-full flex items-center justify-center text-white bg-gradient-to-tr from-blue-600 to-indigo-500 hover:from-blue-500 hover:to-indigo-400 transition-all duration-300 ease-out ${
+            isOpen ? 'opacity-0 scale-75 pointer-events-none' : 'opacity-100 scale-100 pointer-events-auto'
+          }`}
           aria-label="Open chat"
         >
           <svg className="w-6 h-6 drop-shadow-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">

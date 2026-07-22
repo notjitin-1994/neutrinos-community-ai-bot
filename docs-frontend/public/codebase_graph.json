@@ -1,6 +1,6 @@
 {
   "nodes": {
-    "generator.py": {
+    "src/neutrinos_bot/generator.py": {
       "functions": [
         "_build_context",
         "_extract_citations",
@@ -8,7 +8,7 @@
       ],
       "content": "\"\"\"Answer generator with strict context-only prompting.\n\nUses NVIDIA llama-3.1-70b-instruct to generate an answer STRICTLY from\nretrieved context chunks. The system prompt forbids fabrication and\nrequires inline citations. Returns structured output with answer + citations.\n\"\"\"\n\nimport logging\nimport re\nfrom dataclasses import dataclass, field\n\nfrom neutrinos_bot.nvidia_client import NvidiaClient\nfrom neutrinos_bot.retriever import RetrievedChunk\n\nlogger = logging.getLogger(__name__)\n\nSYSTEM_PROMPT = \"\"\"You are a helpful support bot for the Neutrinos platform community.\nAnswer the user's question STRICTLY using only the context provided below.\n\nRules:\n1. Only use information from the provided context. Never fabricate.\n2. If the context does not contain enough information, say: \"I don't have a confident source for this question.\"\n3. Cite sources inline using EXACTLY the Source name provided in the context (e.g., [Community Topic #N] or [Doc Name]). Do not use generic numbers like [1].\n4."
     },
-    "sla_monitor.py": {
+    "src/neutrinos_bot/sla_monitor.py": {
       "functions": [
         "is_resolved",
         "find_sla_candidates",
@@ -17,14 +17,14 @@
       ],
       "content": "\"\"\"SLA monitoring poll loop with answered-rule logic.\n\nPolls Discourse /latest.json, evaluates each topic against the SLA rule from\nSection 5 of the plan, and enqueues unresolved SLA-breaching candidates for\nthe RAG pipeline + post-back to handle.\n\nAnswered rule (Section 5):\n  A topic is resolved if it has an accepted_solution OR the last post is from\n  a non-bot, non-OP human within the grace window.\n  Topic-3 trap: if the last post is the OP asking a follow-up that nobody\n  answered, the topic is unresolved even though an earlier reply exists.\n\"\"\"\n\nimport asyncio\nimport logging\nimport time\nfrom dataclasses import dataclass\nfrom typing import Any\n\nfrom neutrinos_bot.config import get_settings\nfrom neutrinos_bot.discourse_client import DiscourseClient\nfrom neutrinos_bot.state import StateStore\n\nlogger = logging.getLogger(__name__)\n\n\n@dataclass\nclass SLACandidate:\n    topic_id: int\n    title: str\n    question: str\n    created_at: str\n    last_post_author: str\n    posts: list[dict[str, A"
     },
-    "confidence.py": {
+    "src/neutrinos_bot/confidence.py": {
       "functions": [
         "compute_score",
         "evaluate"
       ],
       "content": "\"\"\"Confidence scoring gate \u2014 answer vs decline/escalate.\n\nComputes a weighted confidence score from retrieved chunks and decides\nwhether the bot should answer (score >= threshold) or decline + escalate\n(score < threshold). This is the critical anti-hallucination gate.\n\"\"\"\n\nimport logging\nfrom dataclasses import dataclass\n\nfrom neutrinos_bot.config import get_settings\nfrom neutrinos_bot.retriever import RetrievedChunk\n\nlogger = logging.getLogger(__name__)\n\n\n@dataclass\nclass ConfidenceResult:\n    confident: bool\n    score: float\n    reason: str = \"\"\n\n\ndef compute_score(chunks: list[RetrievedChunk]) -> float:\n    \"\"\"Weighted combo: 0.5 * max_sim + 0.3 * mean_top3_sim + 0.2 * source_bonus.\"\"\"\n    if not chunks:\n        return 0.0\n\n    similarities = [c[\"similarity\"] for c in chunks]\n    max_sim = max(similarities)\n\n    top3 = sorted(similarities, reverse=True)[:3]\n    mean_top3 = sum(top3) / len(top3) if top3 else 0.0\n\n    doc_count = sum(1 for c in chunks if c.get(\"source\") == \"doc\")\n    "
     },
-    "rate_limit.py": {
+    "src/neutrinos_bot/rate_limit.py": {
       "functions": [
         "with_backoff",
         "_is_retryable",
@@ -34,7 +34,7 @@
       ],
       "content": "\"\"\"Shared async rate limiter with exponential backoff for all external API calls.\n\nToken-bucket throttle capped at configurable RPM, with jittered exponential\nbackoff on 429/timeout responses. Used by both nvidia_client and discourse_client.\n\"\"\"\n\nimport asyncio\nimport logging\nimport random\nimport time\nfrom collections.abc import Callable, Coroutine\nfrom typing import Any\n\nlogger = logging.getLogger(__name__)\n\n\nclass RateLimiter:\n    \"\"\"Token-bucket rate limiter that enforces a max-requests-per-minute cap.\"\"\"\n\n    def __init__(self, rpm: int = 30) -> None:\n        self._min_interval = 60.0 / rpm if rpm > 0 else 0\n        self._last_call: float = 0.0\n        self._lock = asyncio.Lock()\n        self._call_count = 0\n\n    async def acquire(self) -> None:\n        \"\"\"Block until it's safe to make the next call.\"\"\"\n        async with self._lock:\n            now = time.monotonic()\n            elapsed = now - self._last_call\n            if elapsed < self._min_interval:\n                wait = sel"
     },
-    "main.py": {
+    "src/neutrinos_bot/main.py": {
       "functions": [
         "health",
         "run_one_cycle",
@@ -44,17 +44,17 @@
       ],
       "content": "\"\"\"FastAPI app + CLI entrypoints.\n\nProvides:\n  - GET  /health  \u2014 health check\n  - POST /run     \u2014 trigger one SLA monitor cycle\n  - POST /webhook \u2014 optional event-driven trigger (bonus)\n  - CLI: python -m neutrinos_bot.main run [--once|--watch] [--dry-run]\n\"\"\"\n\nimport argparse\nimport asyncio\nimport logging\nimport sys\n\nfrom fastapi import FastAPI\n\nfrom neutrinos_bot.config import get_settings\nfrom neutrinos_bot.discourse_client import DiscourseClient\nfrom neutrinos_bot.state import StateStore\n\nlogger = logging.getLogger(__name__)\nlogging.basicConfig(level=logging.INFO, format=\"%(asctime)s %(levelname)s %(name)s: %(message)s\")\n\napp = FastAPI(title=\"Neutrinos SLA Bot\", version=\"0.1.0\")\n\n\n@app.get(\"/health\")\nasync def health() -> dict[str, str]:\n    return {\"status\": \"ok\", \"service\": \"neutrinos-sla-bot\"}\n\n\n@app.post(\"/run\")\nasync def run_one_cycle(dry_run: bool = False) -> dict:\n    \"\"\"Trigger one SLA scan + RAG + post cycle.\"\"\"\n    from neutrinos_bot.confidence import evaluate\n    from ne"
     },
-    "__init__.py": {
+    "src/neutrinos_bot/__init__.py": {
       "functions": [],
       "content": "\"\"\"Neutrinos SLA Bot \u2014 AI auto-reply for Discourse communities.\"\"\"\n"
     },
-    "retriever.py": {
+    "src/neutrinos_bot/retriever.py": {
       "functions": [
         "retrieve"
       ],
       "content": "\"\"\"RAG retriever \u2014 query embedding to Chroma top-k.\n\nEmbeds the search query via NVIDIA nv-embed-v1 (input_type=query), queries\nthe local Chroma collection for top-k similar chunks, and returns\nmetadata-rich results for downstream citation and confidence scoring.\n\"\"\"\n\nimport logging\nfrom typing import Any\n\nimport chromadb\n\nfrom neutrinos_bot.config import get_settings\nfrom neutrinos_bot.nvidia_client import NvidiaClient\n\nlogger = logging.getLogger(__name__)\n\nCOLLECTION_NAME = \"neutrinos_knowledge\"\nDEFAULT_TOP_K = 5\n\n\nclass RetrievedChunk(dict[str, Any]):\n    \"\"\"Typed dict for a retrieved chunk with metadata and similarity score.\"\"\"\n\n\nasync def retrieve(\n    query: str,\n    client: NvidiaClient | None = None,\n    top_k: int = DEFAULT_TOP_K,\n    chroma_dir: str | None = None,\n) -> list[RetrievedChunk]:\n    \"\"\"Embed the query and retrieve top-k chunks from Chroma.\"\"\"\n    settings = get_settings()\n    chroma_dir = chroma_dir or settings.chroma_persist_dir\n    client = client or NvidiaClien"
     },
-    "nvidia_client.py": {
+    "src/neutrinos_bot/nvidia_client.py": {
       "functions": [
         "__init__",
         "embed_query",
@@ -65,7 +65,7 @@
       ],
       "content": "\"\"\"Rate-limited NVIDIA NIM client for embeddings + LLM generation.\n\nUses the OpenAI-compatible interface against NVIDIA's integrate.api.nvidia.com.\nImplements batched embeddings, token-bucket throttling, and exponential backoff.\n\"\"\"\n\nimport logging\n\nfrom openai import AsyncOpenAI\n\nfrom neutrinos_bot.config import get_settings\nfrom neutrinos_bot.rate_limit import RateLimiter, with_backoff\n\nlogger = logging.getLogger(__name__)\n\n\nclass NvidiaClient:\n    \"\"\"Async client wrapping NVIDIA NIM for embeddings and chat completion.\"\"\"\n\n    def __init__(\n        self,\n        api_key: str | None = None,\n        base_url: str | None = None,\n        embed_model: str | None = None,\n        gen_model: str | None = None,\n        rpm: int | None = None,\n    ) -> None:\n        settings = get_settings()\n        self._api_key = api_key or settings.nvidia_api_key\n        self._base_url = base_url or settings.nvidia_base_url\n        self._embed_model = embed_model or settings.nvidia_embed_model\n        self."
     },
-    "post_back.py": {
+    "src/neutrinos_bot/post_back.py": {
       "functions": [
         "format_answer",
         "format_escalation",
@@ -73,13 +73,13 @@
       ],
       "content": "\"\"\"Post replies back to Discourse with labeling.\n\nTakes an SLA candidate + RAG result, formats a labeled bot reply with\ncitations, and posts it to Discourse. Low-confidence results get an\nescalation message instead of an answer. All posts are idempotent via\nthe StateStore.\n\"\"\"\n\nimport logging\nfrom typing import Any\n\nfrom neutrinos_bot.confidence import ConfidenceResult\nfrom neutrinos_bot.discourse_client import DiscourseClient\nfrom neutrinos_bot.generator import GenerationResult\nfrom neutrinos_bot.state import StateStore\n\nlogger = logging.getLogger(__name__)\n\nAI_LABEL = \"> **AI-generated answer** \ud83e\udd16\\n>\\n> \"\nFOOTER = (\n    \"\\n\\n---\\n\\n\"\n    \"*Was this helpful? React with \ud83d\udc4d or reply to flag a human expert. \"\n    \"This answer was generated from Neutrinos documentation.*\"\n)\n\nESCALATE_TEMPLATE = (\n    \"> **AI assistant** \ud83e\udd16\\n>\\n> \"\n    \"I don't have a confident source for this question in the current documentation. \"\n    \"Pinging a human expert to help \u2014 @neutrinos_champion\"\n)\n\n\ndef format_an"
     },
-    "config.py": {
+    "src/neutrinos_bot/config.py": {
       "functions": [
         "get_settings"
       ],
       "content": "\"\"\"Application configuration loaded from environment variables.\"\"\"\n\nfrom functools import lru_cache\n\nfrom pydantic import Field\nfrom pydantic_settings import BaseSettings, SettingsConfigDict\n\n\nclass Settings(BaseSettings):\n    \"\"\"Settings loaded from .env file or environment variables.\"\"\"\n\n    model_config = SettingsConfigDict(\n        env_file=\".env\",\n        env_file_encoding=\"utf-8\",\n        extra=\"ignore\",\n    )\n\n    # Discourse\n    discourse_base_url: str = Field(..., description=\"Discourse instance base URL\")\n    discourse_api_key: str = Field(..., description=\"Discourse API key\")\n    discourse_api_username: str = Field(..., description=\"Discourse bot account username\")\n\n    # NVIDIA NIM\n    nvidia_api_key: str = Field(..., description=\"NVIDIA NIM API key\")\n    nvidia_base_url: str = Field(\n        default=\"https://integrate.api.nvidia.com/v1\",\n        description=\"NVIDIA NIM base URL\",\n    )\n    nvidia_embed_model: str = Field(default=\"nvidia/nv-embed-v1\")\n    nvidia_gen_model: "
     },
-    "state.py": {
+    "src/neutrinos_bot/state.py": {
       "functions": [
         "__init__",
         "connect",
@@ -96,7 +96,7 @@
       ],
       "content": "\"\"\"SQLite idempotency store for tracking bot-answered topics.\n\nPrevents the bot from double-posting to the same topic across runs.\nUses a simple topics table keyed by topic_id.\n\"\"\"\n\nimport logging\nimport sqlite3\nimport time\nfrom pathlib import Path\n\nlogger = logging.getLogger(__name__)\n\n_SCHEMA = \"\"\"\nCREATE TABLE IF NOT EXISTS bot_state (\n    topic_id      INTEGER PRIMARY KEY,\n    bot_answered  INTEGER DEFAULT 0,\n    post_id       INTEGER,\n    answer_type   TEXT,\n    confidence    REAL,\n    first_seen    REAL,\n    last_human_at REAL,\n    last_checked  REAL,\n    created_at    REAL DEFAULT (strftime('%s','now')),\n    ingested      INTEGER DEFAULT 0\n);\n\n\"\"\"\n\n\nclass StateStore:\n    \"\"\"SQLite-backed idempotency store.\"\"\"\n\n    def __init__(self, db_path: str = \"state.db\") -> None:\n        self._db_path = db_path\n        self._conn: sqlite3.Connection | None = None\n\n    def connect(self) -> None:\n        \"\"\"Open the database connection and ensure schema exists.\"\"\"\n        Path(self._db_path)."
     },
-    "ingest.py": {
+    "src/neutrinos_bot/ingest.py": {
       "functions": [
         "chunk_text",
         "extract_pdf_text",
@@ -105,7 +105,7 @@
       ],
       "content": "\"\"\"PDF and community thread ingestion into Chroma.\n\nParses PDFs and Discourse threads, chunks them, embeds via NVIDIA nv-embed-v1,\nand persists to a local Chroma collection with rich metadata for citation.\n\"\"\"\n\nimport logging\nfrom pathlib import Path\nfrom typing import Any\n\nimport chromadb\nfrom pypdf import PdfReader\n\nfrom neutrinos_bot.config import get_settings\nfrom neutrinos_bot.nvidia_client import NvidiaClient\n\nlogger = logging.getLogger(__name__)\n\nCHUNK_SIZE = 600\nCHUNK_OVERLAP = 100\nCOLLECTION_NAME = \"neutrinos_knowledge\"\n\n\ndef chunk_text(text: str, size: int = CHUNK_SIZE, overlap: int = CHUNK_OVERLAP) -> list[str]:\n    \"\"\"Split text intelligently using LangChain's RecursiveCharacterTextSplitter.\"\"\"\n    if not text.strip():\n        return []\n    from langchain_text_splitters import RecursiveCharacterTextSplitter\n    splitter = RecursiveCharacterTextSplitter(\n        chunk_size=size,\n        chunk_overlap=overlap,\n        separators=[\"\\n\\n\", \"\\n\", \" \", \"\"]\n    )\n    return splitt"
     },
-    "discourse_client.py": {
+    "src/neutrinos_bot/discourse_client.py": {
       "functions": [
         "__init__",
         "close",

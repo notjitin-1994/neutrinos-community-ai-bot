@@ -1,7 +1,7 @@
 import ast
 import json
+import logging
 import os
-import sys
 
 def extract_graph(file_paths):
     graph = {"nodes": {}}
@@ -11,8 +11,10 @@ def extract_graph(file_paths):
                 content = f.read()
             tree = ast.parse(content)
             funcs = [node.name for node in ast.walk(tree) if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))]
-            graph["nodes"][os.path.basename(path)] = {"functions": funcs, "content": content[:1000]}
-        except Exception:
+            rel_path = os.path.relpath(path)
+            graph["nodes"][rel_path] = {"functions": funcs, "content": content[:1000]}
+        except Exception as e:
+            logging.warning(f"Warning: Failed to parse {path}: {e}")
             continue
     return graph
 

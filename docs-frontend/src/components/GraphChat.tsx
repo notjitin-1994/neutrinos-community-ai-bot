@@ -52,6 +52,62 @@ const MermaidRenderer = ({ chart }: { chart: string }) => {
   return <div className="flex justify-center" dangerouslySetInnerHTML={{ __html: svg }} />;
 };
 
+const MarkdownMessage = React.memo(({ content, isStreamingLast, setFullscreenDiagram }: { content: string, isStreamingLast: boolean, setFullscreenDiagram: (val: string | null) => void }) => {
+  const components = React.useMemo(() => ({
+    code({ node, className, children, ...props }: any) {
+      const match = /language-(\w+)/.exec(className || "");
+      const isInline = !match && !String(children).includes("\n");
+      
+      if (!isInline && match && match[1] === "mermaid") {
+        const diagramText = String(children).replace(/\n$/, "");
+        
+        // Prevent mermaid from parsing incomplete graphs during streaming
+        if (isStreamingLast) {
+          return (
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-[12px] text-slate-400 font-mono animate-pulse my-3 text-center">
+              Generating architectural diagram...
+            </div>
+          );
+        }
+
+        return (
+          <div className="relative group my-3">
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-[12px] overflow-x-auto text-slate-800">
+              <MermaidRenderer chart={diagramText} />
+            </div>
+            <button
+              onClick={() => setFullscreenDiagram(diagramText)}
+              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-slate-200 text-slate-600 hover:text-blue-600 shadow-sm px-2 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-medium"
+              aria-label="Expand diagram"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+              </svg>
+              Expand
+            </button>
+          </div>
+        );
+      }
+      return isInline ? (
+        <code className="bg-slate-100 border border-slate-200/60 px-1.5 py-0.5 rounded text-[13px] text-blue-700 font-mono tracking-tight" {...props}>
+          {children}
+        </code>
+      ) : (
+        <pre className="bg-slate-50 p-4 rounded-xl border border-slate-200 overflow-x-auto text-[13px] font-mono my-3 text-slate-800 leading-relaxed scrollbar-thin scrollbar-thumb-slate-200">
+          <code className={className} {...props}>
+            {children}
+          </code>
+        </pre>
+      );
+    },
+  }), [isStreamingLast, setFullscreenDiagram]);
+
+  return <ReactMarkdown components={components}>{content}</ReactMarkdown>;
+}, (prevProps, nextProps) => {
+  return prevProps.content === nextProps.content && 
+         prevProps.isStreamingLast === nextProps.isStreamingLast;
+});
+
 export default function GraphChat() {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
@@ -309,57 +365,11 @@ export default function GraphChat() {
                     : "bg-white border border-slate-100 text-slate-700 self-start rounded-tl-sm max-w-[95%] shadow-sm"
                 }`}
               >
-                <ReactMarkdown
-                  components={{
-                    code({ node, className, children, ...props }: any) {
-                      const match = /language-(\w+)/.exec(className || "");
-                      const isInline = !match && !String(children).includes("\n");
-                      if (!isInline && match && match[1] === "mermaid") {
-                        const diagramText = String(children).replace(/\n$/, "");
-                        
-                        // Prevent mermaid from parsing incomplete graphs during streaming
-                        if (isStreaming && i === messages.length - 1) {
-                          return (
-                            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-[12px] text-slate-400 font-mono animate-pulse my-3 text-center">
-                              Generating architectural diagram...
-                            </div>
-                          );
-                        }
-
-                        return (
-                          <div className="relative group my-3">
-                            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-[12px] overflow-x-auto text-slate-800">
-                              <MermaidRenderer chart={diagramText} />
-                            </div>
-                            <button
-                              onClick={() => setFullscreenDiagram(diagramText)}
-                              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-slate-200 text-slate-600 hover:text-blue-600 shadow-sm px-2 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-medium"
-                              aria-label="Expand diagram"
-                            >
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                              </svg>
-                              Expand
-                            </button>
-                          </div>
-                        );
-                      }
-                      return isInline ? (
-                        <code className="bg-slate-100 border border-slate-200/60 px-1.5 py-0.5 rounded text-[13px] text-blue-700 font-mono tracking-tight" {...props}>
-                          {children}
-                        </code>
-                      ) : (
-                        <pre className="bg-slate-50 p-4 rounded-xl border border-slate-200 overflow-x-auto text-[13px] font-mono my-3 text-slate-800 leading-relaxed scrollbar-thin scrollbar-thumb-slate-200">
-                          <code className={className} {...props}>
-                            {children}
-                          </code>
-                        </pre>
-                      );
-                    },
-                  }}
-                >
-                  {m.content}
-                </ReactMarkdown>
+                <MarkdownMessage 
+                  content={m.content} 
+                  isStreamingLast={isStreaming && i === messages.length - 1} 
+                  setFullscreenDiagram={setFullscreenDiagram} 
+                />
               </div>
             ))}
 

@@ -42,6 +42,7 @@ export default function GraphChat() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<{ role: string; content: string }[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const [loadingWords, setLoadingWords] = useState<string[]>(BASE_WORDS);
   const [currentWord, setCurrentWord] = useState(BASE_WORDS[0]);
   const [fullscreenDiagram, setFullscreenDiagram] = useState<string | null>(null);
@@ -156,6 +157,7 @@ export default function GraphChat() {
           { role: "assistant", content: "" }, // Placeholder for stream
         ]);
         setLoading(false); // Disable the loading animation once stream starts
+        setIsStreaming(true);
 
         if (res.body) {
           const reader = res.body.getReader();
@@ -184,6 +186,7 @@ export default function GraphChat() {
         ]);
       } finally {
         setLoading(false);
+        setIsStreaming(false);
       }
     };
 
@@ -266,6 +269,16 @@ export default function GraphChat() {
                       const isInline = !match && !String(children).includes("\n");
                       if (!isInline && match && match[1] === "mermaid") {
                         const diagramText = String(children).replace(/\n$/, "");
+                        
+                        // Prevent mermaid from parsing incomplete graphs during streaming
+                        if (isStreaming && i === messages.length - 1) {
+                          return (
+                            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-[12px] text-slate-400 font-mono animate-pulse my-3 text-center">
+                              Generating architectural diagram...
+                            </div>
+                          );
+                        }
+
                         return (
                           <div className="relative group my-3">
                             <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-[12px] overflow-x-auto text-slate-800">

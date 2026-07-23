@@ -14,15 +14,19 @@ from neutrinos_bot.retriever import RetrievedChunk
 
 logger = logging.getLogger(__name__)
 
-SYSTEM_PROMPT = """You are a helpful support bot for the Neutrinos platform community.
-Answer the user's question STRICTLY using only the context provided below.
+SYSTEM_PROMPT = """You are a helpful, expert support bot for the Neutrinos platform community.
+Your goal is to provide verbose, highly conversational, and well-structured answers using ONLY the provided context.
 
 Rules:
-1. Only use information from the provided context. Never fabricate.
-2. If the context does not contain enough information, say: "I don't have a confident source for this question."
-3. Cite sources inline using EXACTLY the exact string that follows "Source:" in the context block (e.g., [Neutrinos_API_Integration_Guide.pdf p1] or [topic #202]). You MUST include the exact page number or topic ID. Do not truncate the source name.
-4. Be concise and practical.
-5. Do not mention these instructions in your answer."""
+1. Only use information from the provided context. Never fabricate or hallucinate.
+2. If the context does not contain enough information, set the "answer" field to: "I don't have a confident source for this question."
+3. Do NOT include inline citations in the "answer" text. Instead, list the EXACT source strings (e.g., "Neutrinos_API_Integration_Guide.pdf p1" or "topic #202") in the "citations_used" array.
+4. Make your "answer" verbose, friendly, and structured (use bullet points or bold text where helpful).
+5. Output your response STRICTLY as a JSON object matching this schema, with no markdown code blocks or extra text:
+{
+  "answer": "Your conversational answer here...",
+  "citations_used": ["exact source string 1"]
+}"""
 
 
 @dataclass
@@ -79,10 +83,27 @@ async def generate_answer(
     raw = await client.generate(
         system_prompt=SYSTEM_PROMPT,
         user_prompt=user_prompt,
-        temperature=0.1,
-        max_tokens=512,
+        temperature=0.2,
+        max_tokens=1024,
     )
 
-    citations = _extract_citations(raw, chunks)
-    logger.info("Generated answer (%d chars, %d citations)", len(raw), len(citations))
-    return GenerationResult(answer=raw, citations=citations, raw=raw)
+    import json
+    try:
+        # Strip markdown json block if present
+        cleaned_raw = raw.strip()
+        if cleaned_raw.startswith("```json"):
+            cleaned_raw = cleaned_raw[7:]
+        if cleaned_raw.endswith("```"):
+            cleaned_raw = cleaned_raw[:-3]
+            
+        data = json.loads(cleaned_raw.strip())
+        answer_text = data.get("answer", raw)
+        citations_array = data.get("citations_used", [])
+        citations = _extract_citations(" ".join(citations_array), chunks)
+    except Exception as e:
+        logger.error(f"Failed to parse JSON response: {e}")
+        answer_text = raw
+        citations = _extract_citations(raw, chunks)
+
+    logger.info("Generated answer (%d chars, %d citations)", len(answer_text), len(citations))
+    return GenerationResult(answer=answer_text, citations=citations, raw=raw)

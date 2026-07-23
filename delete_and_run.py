@@ -14,22 +14,22 @@ async def main():
         
         target_topic = None
         for t in topics:
-            if "ServiceNow" in t.get("title", ""):
+            if "401" in t.get("title", ""):
                 target_topic = t
                 break
                 
         if not target_topic:
-            print("Could not find a topic with 'ServiceNow' in the title.")
+            print("Could not find a topic with '401' in the title.")
             # fallback: look inside the posts?
             # Actually, the user's title might be different. Let's just grab the latest topics and fetch their first post.
             for t in topics:
                 posts = await client.get_topic_posts(t["id"])
-                if any("ServiceNow" in p["cooked"] for p in posts):
+                if any("401" in p["cooked"] for p in posts):
                     target_topic = t
                     break
 
         if not target_topic:
-            print("Could not find the ServiceNow topic at all.")
+            print("Could not find the 401 topic at all.")
             return
             
         topic_id = target_topic["id"]

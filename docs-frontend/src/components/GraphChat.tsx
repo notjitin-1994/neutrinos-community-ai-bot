@@ -14,6 +14,33 @@ const LOADING_PHRASES = [
   "Thinking..."
 ];
 
+const MermaidRenderer = ({ chart }: { chart: string }) => {
+  const [svg, setSvg] = useState<string>('');
+  const id = React.useId().replace(/:/g, '');
+
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const mermaid = (await import('mermaid')).default;
+        mermaid.initialize({ startOnLoad: false, theme: "default" });
+        const { svg: renderedSvg } = await mermaid.render(`mermaid-${id}`, chart);
+        if (isMounted) setSvg(renderedSvg);
+      } catch (err) {
+        console.error("Mermaid syntax error:", err);
+        if (isMounted) setSvg(`<div class="text-red-500 p-2 text-xs font-mono">Syntax Error in graph</div>`);
+      }
+    })();
+    return () => { isMounted = false; };
+  }, [chart, id]);
+
+  if (!svg) {
+    return <div className="p-4 text-slate-400 text-xs text-center animate-pulse">Rendering diagram...</div>;
+  }
+
+  return <div className="flex justify-center" dangerouslySetInnerHTML={{ __html: svg }} />;
+};
+
 export default function GraphChat() {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
@@ -57,31 +84,6 @@ export default function GraphChat() {
       localStorage.removeItem("jitin-ai-chat-history");
     }
   };
-
-  // Dynamic Mermaid Initialization
-  useEffect(() => {
-    (async () => {
-      try {
-        const mermaid = (await import("mermaid")).default;
-        // Use default light theme for mermaid
-        mermaid.initialize({ startOnLoad: true, theme: "default" });
-      } catch (e) {
-        console.error("Mermaid initialization error:", e);
-      }
-    })();
-  }, []);
-
-  // Re-run mermaid on fullscreen open
-  useEffect(() => {
-    if (fullscreenDiagram) {
-      setTimeout(async () => {
-        try {
-          const mermaid = (await import("mermaid")).default;
-          mermaid.contentLoaded();
-        } catch (e) {}
-      }, 50);
-    }
-  }, [fullscreenDiagram]);
 
   // Loading randomizer
   useEffect(() => {
@@ -168,15 +170,6 @@ export default function GraphChat() {
           ...prev.filter((m) => !m.content.startsWith("Rate limit hit. Queueing request...")),
           { role: "assistant", content: responseText },
         ]);
-
-        setTimeout(async () => {
-          try {
-            const mermaid = (await import("mermaid")).default;
-            mermaid.contentLoaded();
-          } catch (err) {
-            console.error("Mermaid render error:", err);
-          }
-        }, 150);
       } catch (e: any) {
         setMessages((prev) => [
           ...prev.filter((m) => !m.content.startsWith("Rate limit hit. Queueing request...")),
@@ -268,8 +261,8 @@ export default function GraphChat() {
                         const diagramText = String(children).replace(/\n$/, "");
                         return (
                           <div className="relative group my-3">
-                            <div className="mermaid bg-slate-50 p-4 rounded-xl border border-slate-200 text-[12px] overflow-x-auto text-slate-800">
-                              {diagramText}
+                            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-[12px] overflow-x-auto text-slate-800">
+                              <MermaidRenderer chart={diagramText} />
                             </div>
                             <button
                               onClick={() => setFullscreenDiagram(diagramText)}
@@ -365,8 +358,8 @@ export default function GraphChat() {
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
           <div className="w-full max-w-6xl max-h-[90vh] bg-white border border-slate-200 shadow-2xl rounded-3xl overflow-auto p-8 flex items-center justify-center">
-             <div className="mermaid text-base scale-110 origin-center">
-               {fullscreenDiagram}
+             <div className="text-base scale-110 origin-center">
+               <MermaidRenderer chart={fullscreenDiagram} />
              </div>
           </div>
         </div>

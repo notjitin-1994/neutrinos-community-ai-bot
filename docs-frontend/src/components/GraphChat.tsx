@@ -20,7 +20,11 @@ const MermaidRenderer = ({ chart }: { chart: string }) => {
         const renderId = `d-mermaid-${Math.random().toString(36).substr(2, 9)}-${Date.now()}`;
         const mermaid = (await import('mermaid')).default;
         mermaid.initialize({ startOnLoad: false, theme: "default" });
-        const { svg: renderedSvg } = await mermaid.render(renderId, chart);
+        
+        // Auto-fix LLM syntax hallucinations (e.g. `-->|text|>`)
+        const sanitizedChart = chart.replace(/\|>/g, '|');
+        
+        const { svg: renderedSvg } = await mermaid.render(renderId, sanitizedChart);
         if (isMounted) setSvg(renderedSvg);
       } catch (err) {
         console.error("Mermaid syntax error:", err);

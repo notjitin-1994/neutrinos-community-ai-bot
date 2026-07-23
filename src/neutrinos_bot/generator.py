@@ -20,7 +20,7 @@ Answer the user's question STRICTLY using only the context provided below.
 Rules:
 1. Only use information from the provided context. Never fabricate.
 2. If the context does not contain enough information, say: "I don't have a confident source for this question."
-3. Cite sources inline using EXACTLY the Source name provided in the context (e.g., [Community Topic #N] or [Doc Name]). Do not use generic numbers like [1].
+3. Cite sources inline using EXACTLY the exact string that follows "Source:" in the context block (e.g., [Neutrinos_API_Integration_Guide.pdf p1] or [topic #202]). You MUST include the exact page number or topic ID. Do not truncate the source name.
 4. Be concise and practical.
 5. Do not mention these instructions in your answer."""
 

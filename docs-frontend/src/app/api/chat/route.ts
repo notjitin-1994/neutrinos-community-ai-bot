@@ -82,7 +82,7 @@ export async function POST(req: Request) {
       }
     }
 
-    const completion = await openai.chat.completions.create({
+    const stream = await openai.chat.completions.create({
       model: 'meta/llama-3.1-70b-instruct',
       messages: [
         {
@@ -108,11 +108,30 @@ ${graphContext}`
       ],
       temperature: 0.2,
       max_tokens: 1024,
+      stream: true,
     });
 
-    const responseContent = completion.choices[0]?.message?.content || "Sorry, I couldn't generate a response.";
+    const encoder = new TextEncoder();
+    const readable = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const chunk of stream) {
+            const content = chunk.choices[0]?.delta?.content || "";
+            if (content) {
+              controller.enqueue(encoder.encode(content));
+            }
+          }
+        } catch (e) {
+          controller.error(e);
+        } finally {
+          controller.close();
+        }
+      }
+    });
 
-    return NextResponse.json({ status: "success", message: responseContent });
+    return new Response(readable, {
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+    });
   } catch (error: any) {
     if (error?.status === 429) {
       return NextResponse.json({ status: "rate_limit", message: "Queueing request..." }, { status: 429 });

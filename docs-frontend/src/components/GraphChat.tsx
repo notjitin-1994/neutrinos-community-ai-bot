@@ -4,14 +4,10 @@ import React, { useState, useRef, useEffect } from "react";
 import gsap from "gsap";
 import ReactMarkdown from "react-markdown";
 
-const LOADING_PHRASES = [
-  "Analyzing codebase...",
-  "Traversing AST...",
-  "Computing embeddings...",
-  "Querying graph...",
-  "Parsing context...",
-  "Synthesizing response...",
-  "Thinking..."
+const BASE_WORDS = [
+  "analyzing", "resolving", "indexing", "parsing", "mapping", 
+  "evaluating", "synthesizing", "compiling", "contextualizing", 
+  "fetching", "traversing", "embedding"
 ];
 
 const MermaidRenderer = ({ chart }: { chart: string }) => {
@@ -46,12 +42,12 @@ export default function GraphChat() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<{ role: string; content: string }[]>([]);
   const [loading, setLoading] = useState(false);
-  const [loadingText, setLoadingText] = useState(LOADING_PHRASES[0]);
+  const [loadingWords, setLoadingWords] = useState<string[]>(BASE_WORDS);
+  const [currentWord, setCurrentWord] = useState(BASE_WORDS[0]);
   const [fullscreenDiagram, setFullscreenDiagram] = useState<string | null>(null);
   
   const chatRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const textScrambleRef = useRef<HTMLSpanElement>(null);
 
   // Persistence: Load from localStorage on mount
   useEffect(() => {
@@ -85,31 +81,16 @@ export default function GraphChat() {
     }
   };
 
-  // Loading randomizer
+  // Loading randomizer - rapid word cycling (Claude style)
   useEffect(() => {
     if (!loading) return;
     let i = 0;
     const interval = setInterval(() => {
-      i = (i + 1) % LOADING_PHRASES.length;
-      if (textScrambleRef.current) {
-        gsap.to(textScrambleRef.current, {
-          opacity: 0,
-          y: -4,
-          duration: 0.15,
-          onComplete: () => {
-            setLoadingText(LOADING_PHRASES[i]);
-            gsap.fromTo(textScrambleRef.current, 
-              { opacity: 0, y: 4 }, 
-              { opacity: 1, y: 0, duration: 0.15 }
-            );
-          }
-        });
-      } else {
-        setLoadingText(LOADING_PHRASES[i]);
-      }
-    }, 1500);
+      i = (i + 1) % loadingWords.length;
+      setCurrentWord(loadingWords[i]);
+    }, 120);
     return () => clearInterval(interval);
-  }, [loading]);
+  }, [loading, loadingWords]);
 
   // Message enter animation & scroll
   useEffect(() => {
@@ -136,6 +117,11 @@ export default function GraphChat() {
 
     setMessages((prev) => [...prev, newMsg]);
     setInput("");
+
+    // Extract contextual words from input to blend with base words
+    const contextualWords = userMessage.toLowerCase().replace(/[^a-z0-9]/g, ' ').split(/\s+/).filter(w => w.length > 3);
+    const mixed = Array.from(new Set([...BASE_WORDS, ...contextualWords])).sort(() => Math.random() - 0.5);
+    setLoadingWords(mixed.length > 0 ? mixed : BASE_WORDS);
 
     let attempts = 0;
     let delay = 2000;
@@ -164,13 +150,34 @@ export default function GraphChat() {
           return attemptFetch();
         }
 
-        const data = await res.json();
-        const responseText = data.error || data.message || "No response received from server.";
+        // Setup for streaming
         setMessages((prev) => [
           ...prev.filter((m) => !m.content.startsWith("Rate limit hit. Queueing request...")),
-          { role: "assistant", content: responseText },
+          { role: "assistant", content: "" }, // Placeholder for stream
         ]);
+        setLoading(false); // Disable the loading animation once stream starts
+
+        if (res.body) {
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let assistantMessage = "";
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            
+            const chunk = decoder.decode(value, { stream: true });
+            assistantMessage += chunk;
+            
+            setMessages((prev) => {
+              const newMessages = [...prev];
+              newMessages[newMessages.length - 1].content = assistantMessage;
+              return newMessages;
+            });
+          }
+        }
       } catch (e: any) {
+        setLoading(false);
         setMessages((prev) => [
           ...prev.filter((m) => !m.content.startsWith("Rate limit hit. Queueing request...")),
           { role: "assistant", content: e?.message || "Error communicating with server." },
@@ -297,13 +304,15 @@ export default function GraphChat() {
             ))}
 
             {loading && (
-              <div className="message-bubble bg-white border border-slate-100 text-slate-500 self-start rounded-2xl rounded-tl-sm py-3 px-4 shadow-sm flex items-center gap-3">
-                <svg className="w-4 h-4 text-blue-600 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-80" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span ref={textScrambleRef} className="text-[13px] font-medium tracking-wide">
-                  {loadingText}
+              <div className="message-bubble bg-white border border-slate-100 text-slate-500 self-start rounded-2xl rounded-tl-sm py-3 px-4 shadow-sm flex items-center gap-3 w-40">
+                <img 
+                  src="/favicon.svg" 
+                  alt="Loading" 
+                  className="w-5 h-5 animate-spin opacity-80" 
+                  style={{ animationDuration: '0.8s' }}
+                />
+                <span className="text-[12px] font-mono tracking-wider text-slate-600 opacity-90 overflow-hidden text-ellipsis whitespace-nowrap">
+                  {currentWord}...
                 </span>
               </div>
             )}

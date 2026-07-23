@@ -12,23 +12,28 @@ const BASE_WORDS = [
 
 const MermaidRenderer = ({ chart }: { chart: string }) => {
   const [svg, setSvg] = useState<string>('');
-  const id = React.useId().replace(/:/g, '');
 
   useEffect(() => {
     let isMounted = true;
     (async () => {
       try {
+        const renderId = `mermaid-${Math.random().toString(36).substr(2, 9)}-${Date.now()}`;
         const mermaid = (await import('mermaid')).default;
         mermaid.initialize({ startOnLoad: false, theme: "default" });
-        const { svg: renderedSvg } = await mermaid.render(`mermaid-${id}`, chart);
+        const { svg: renderedSvg } = await mermaid.render(renderId, chart);
         if (isMounted) setSvg(renderedSvg);
       } catch (err) {
         console.error("Mermaid syntax error:", err);
-        if (isMounted) setSvg(`<div class="text-red-500 p-2 text-xs font-mono">Syntax Error in graph</div>`);
+        if (isMounted) {
+          setSvg(`<div class="text-red-500 p-3 bg-red-50 border border-red-100 rounded-xl text-xs font-mono">
+            <strong>Syntax Error</strong><br/>
+            The AI generated an invalid graph structure.
+          </div>`);
+        }
       }
     })();
     return () => { isMounted = false; };
-  }, [chart, id]);
+  }, [chart]);
 
   if (!svg) {
     return <div className="p-4 text-slate-400 text-xs text-center animate-pulse">Rendering diagram...</div>;
@@ -238,7 +243,7 @@ export default function GraphChat() {
           </div>
 
           {/* Messages Container */}
-          <div className="flex-1 p-5 overflow-y-auto flex flex-col gap-5 text-[14px] leading-relaxed scrollbar-thin scrollbar-thumb-slate-200">
+          <div className="flex-1 p-5 overflow-y-auto overscroll-contain flex flex-col gap-5 text-[14px] leading-relaxed scrollbar-thin scrollbar-thumb-slate-200">
             {messages.length === 0 && (
               <div className="my-auto text-center flex flex-col items-center gap-4 animate-in fade-in duration-1000">
                 <div className="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center shadow-inner mb-1">

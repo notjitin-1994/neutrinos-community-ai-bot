@@ -61,6 +61,7 @@ export default function GraphChat() {
   const [loadingWords, setLoadingWords] = useState<string[]>(BASE_WORDS);
   const [currentWord, setCurrentWord] = useState(BASE_WORDS[0]);
   const [fullscreenDiagram, setFullscreenDiagram] = useState<string | null>(null);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
   
   const chatRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -91,10 +92,13 @@ export default function GraphChat() {
   }, [messages]);
 
   const clearChat = () => {
-    if (window.confirm("Are you sure you want to clear the chat history?")) {
-      setMessages([]);
-      localStorage.removeItem("jitin-ai-chat-history");
-    }
+    setShowClearConfirm(true);
+  };
+
+  const confirmClearChat = () => {
+    setMessages([]);
+    localStorage.removeItem("jitin-ai-chat-history");
+    setShowClearConfirm(false);
   };
 
   // Loading randomizer - rapid word cycling (Claude style)
@@ -253,7 +257,35 @@ export default function GraphChat() {
           </div>
 
           {/* Messages Container */}
-          <div className="flex-1 p-5 overflow-y-auto overscroll-contain flex flex-col gap-5 text-[14px] leading-relaxed scrollbar-thin scrollbar-thumb-slate-200">
+          <div className="flex-1 p-5 overflow-y-auto overscroll-contain flex flex-col gap-5 text-[14px] leading-relaxed scrollbar-thin scrollbar-thumb-slate-200 relative">
+            
+            {/* Custom Clear Chat Confirmation Overlay */}
+            {showClearConfirm && (
+              <div className="absolute inset-0 z-10 bg-white/80 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-200">
+                <div className="bg-white border border-slate-200 shadow-xl rounded-2xl p-5 text-center max-w-[280px]">
+                  <div className="w-12 h-12 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                  </div>
+                  <h4 className="text-slate-900 font-semibold mb-1">Clear History?</h4>
+                  <p className="text-slate-500 text-xs mb-5">This action cannot be undone. All current architecture context will be lost.</p>
+                  <div className="flex gap-2 justify-center">
+                    <button 
+                      onClick={() => setShowClearConfirm(false)}
+                      className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-xl transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      onClick={confirmClearChat}
+                      className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded-xl transition-colors shadow-sm shadow-red-500/20"
+                    >
+                      Yes, Clear
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {messages.length === 0 && (
               <div className="my-auto text-center flex flex-col items-center gap-4 animate-in fade-in duration-1000">
                 <div className="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center shadow-inner mb-1">

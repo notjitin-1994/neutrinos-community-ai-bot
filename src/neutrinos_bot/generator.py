@@ -88,6 +88,8 @@ async def generate_answer(
     )
 
     import json
+    import re
+    
     try:
         # Strip markdown json block if present
         cleaned_raw = raw.strip()
@@ -96,13 +98,24 @@ async def generate_answer(
         if cleaned_raw.endswith("```"):
             cleaned_raw = cleaned_raw[:-3]
             
-        data = json.loads(cleaned_raw.strip())
+        # Fix smart quotes that LLMs sometimes generate
+        cleaned_raw = cleaned_raw.replace('“', '"').replace('”', '"').strip()
+        
+        # Use strict=False to allow unescaped newlines (\n) inside the JSON string
+        data = json.loads(cleaned_raw, strict=False)
         answer_text = data.get("answer", raw)
         citations_array = data.get("citations_used", [])
         citations = _extract_citations(" ".join(citations_array), chunks)
     except Exception as e:
         logger.error(f"Failed to parse JSON response: {e}")
-        answer_text = raw
+        
+        # Fallback: manually extract the answer text using regex to avoid dumping raw JSON
+        match = re.search(r'"answer"\s*:\s*"(.*?)"\s*,\s*"citations_used"', raw, re.DOTALL)
+        if match:
+            answer_text = match.group(1).strip()
+        else:
+            answer_text = raw
+            
         citations = _extract_citations(raw, chunks)
 
     logger.info("Generated answer (%d chars, %d citations)", len(answer_text), len(citations))

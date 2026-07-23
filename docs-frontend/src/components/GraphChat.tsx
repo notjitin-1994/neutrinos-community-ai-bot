@@ -29,10 +29,12 @@ const MermaidRenderer = ({ chart }: { chart: string }) => {
         document.querySelectorAll('svg[id^="d-mermaid-"]').forEach(el => el.remove());
         
         if (isMounted) {
-          setSvg(`<div class="text-red-500 p-3 bg-red-50 border border-red-100 rounded-xl text-xs font-mono">
+          const safeChart = chart.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          setSvg(`<div class="text-red-500 p-3 bg-red-50 border border-red-100 rounded-t-xl text-xs font-mono">
             <strong>Syntax Error</strong><br/>
             The AI generated an invalid graph structure.
-          </div>`);
+          </div>
+          <pre class="bg-slate-800 text-slate-300 p-3 rounded-b-xl text-[10px] overflow-auto whitespace-pre-wrap">${safeChart}</pre>`);
         }
       }
     })();

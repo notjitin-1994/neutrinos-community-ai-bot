@@ -17,13 +17,17 @@ const MermaidRenderer = ({ chart }: { chart: string }) => {
     let isMounted = true;
     (async () => {
       try {
-        const renderId = `mermaid-${Math.random().toString(36).substr(2, 9)}-${Date.now()}`;
+        const renderId = `d-mermaid-${Math.random().toString(36).substr(2, 9)}-${Date.now()}`;
         const mermaid = (await import('mermaid')).default;
         mermaid.initialize({ startOnLoad: false, theme: "default" });
         const { svg: renderedSvg } = await mermaid.render(renderId, chart);
         if (isMounted) setSvg(renderedSvg);
       } catch (err) {
         console.error("Mermaid syntax error:", err);
+        // Mermaid intentionally abandons its calculation div on the body when it crashes.
+        // We must aggressively clean it up or it bleeds onto the user's screen.
+        document.querySelectorAll('svg[id^="d-mermaid-"]').forEach(el => el.remove());
+        
         if (isMounted) {
           setSvg(`<div class="text-red-500 p-3 bg-red-50 border border-red-100 rounded-xl text-xs font-mono">
             <strong>Syntax Error</strong><br/>
